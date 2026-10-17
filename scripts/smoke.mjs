@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { normalize } from '../src/options.mjs'
 import { buildProject, writeProject, run } from '../src/generator.mjs'
 const scenario = process.argv[2] ?? 'nuxt-ui'
@@ -23,6 +23,17 @@ const plan = buildProject(options)
 await writeProject(options, plan)
 await run('bun', ['install'], options.dir)
 await run('bun', ['run', 'typecheck'], options.dir)
+if (scenario === 'shadcn') {
+  const path = resolve(options.dir, 'app/components/ui/button/Button.vue')
+  const original = await readFile(path, 'utf8')
+  try {
+    await writeFile(path, original.replace('<script setup lang="ts">', '<script setup lang="ts">\nconst intentionalTypeProbe: number = \'must be rejected\''))
+    const probe = spawnSync('bun', ['run', 'typecheck'], { cwd: options.dir, encoding: 'utf8', timeout: 60000 })
+    assert.ok(!probe.error, 'SFC typecheck probe failed to execute')
+    assert.notEqual(probe.status, 0, 'Vue SFC type errors must not be hidden by the compatibility shim')
+    assert.match(probe.stdout + probe.stderr, /TS2322/, 'Expected the deliberate string-to-number type error in the Vue SFC')
+  } finally { await writeFile(path, original) }
+}
 if (options.features.includes('queue')) await run('bun', ['run', 'typecheck:worker'], options.dir)
 await run('bun', ['run', 'test'], options.dir)
 // Formatting is generated deterministically; fix style once, then require a clean lint run.
@@ -65,6 +76,7 @@ try {
   const html = await page.text()
   assert.ok(html.includes('PEPPERFM'), 'SSR did not render the starter')
   assert.ok(!html.includes('[object Object]'), 'SSR serialization regression')
+  assert.match(html, /<button[^>]*>[\s\S]*?Counter: 0[\s\S]*?<\/button>/, 'Selected UI must render a real button, not an unresolved custom element')
   if (options.modules.includes('i18n')) assert.equal((await fetch(origin + '/en')).status, 200)
   if (options.modules.includes('mdc')) assert.match(await (await fetch(origin + '/markdown')).text(), /Markdown demo/)
   if (options.modules.includes('content')) assert.match(await (await fetch(origin + '/docs')).text(), /Your content/)
