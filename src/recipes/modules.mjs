@@ -1,3 +1,5 @@
+import { raw } from '../context.mjs'
+
 export function extras(c) {
   if (c.has('eslint')) {
     c.module('@nuxt/eslint'); c.add('eslint', true)
@@ -44,6 +46,9 @@ const markdown = '# Markdown demo\\n\\nRender trusted Markdown with **MDC** and 
   }
   if (c.has('content')) {
     c.module('@nuxt/content')
+    // Use each tool runtime's built-in SQLite; no native npm addon or install-time binary build.
+    c.cfg.content = { experimental: { sqliteConnector: raw("process.versions.bun ? 'bun' : 'native'") } }
+    c.notes.push('Content uses Bun SQLite for the app/build and native Node SQLite during typechecking. Node 22.13+ is required for this optional recipe; its sqliteConnector setting is experimental upstream.')
     c.file('content.config.ts', `import { defineContentConfig, defineCollection } from '@nuxt/content'
 export default defineContentConfig({ collections: { docs: defineCollection({ type: 'page', source: '**/*.md' }) } })`)
     c.file('content/intro.md', '---\ntitle: Getting started\n---\n\n# Your content\n\nEdit `content/intro.md`.\n')

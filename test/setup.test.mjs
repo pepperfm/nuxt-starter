@@ -25,3 +25,11 @@ test('setup skips absent formatters; typechecker uses its Node shebang without w
   assert.equal(buildProject(options({ ui: 'nuxt-ui' })).config.typescript.shim, undefined)
   assert.equal(buildProject(options({})).pkg.scripts.typecheck, 'nuxt typecheck')
 })
+
+test('Content selects runtime-native SQLite without adding a compiled addon', () => {
+  const p = buildProject(options({ modules: 'content' }))
+  assert.equal(p.pkg.engines.node, '>=22.13.0')
+  assert.match(p.files.get('nuxt.config.ts'), /process\.versions\.bun \? 'bun' : 'native'/)
+  assert.equal(p.pkg.dependencies['better-sqlite3'], undefined)
+  assert.equal(p.pkg.devDependencies['better-sqlite3'], undefined)
+})

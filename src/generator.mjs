@@ -15,7 +15,7 @@ export const generatorVersion = '0.1.0'
 export function buildProject(options) {
   const c = context(options)
   for (const recipe of [base, ui, extras, data, auth, queue, infra]) recipe(c)
-  c.pkg.engines = { bun: '>=1.3.0', node: '>=22.12.0' }
+  c.pkg.engines = { bun: '>=1.3.0', node: c.has('content') ? '>=22.13.0' : '>=22.12.0' }
   for (const key of ['dependencies', 'devDependencies']) c.pkg[key] = Object.fromEntries(Object.entries(c.pkg[key]).sort(([a], [b]) => a.localeCompare(b)))
   c.file('package.json', JSON.stringify(c.pkg, null, 2))
   c.file('nuxt.config.ts', [...c.imports, '', `export default defineNuxtConfig(${serialize(c.cfg)})`].join('\n'))
