@@ -14,7 +14,7 @@ export function context(options) {
   const files = new Map()
   const pkg = {
     name: options.name, private: true, type: 'module',
-    scripts: { dev: 'bun --bun nuxt dev', build: 'bun --bun nuxt build', preview: 'bun --bun nuxt preview', start: 'bun run .output/server/index.mjs', postinstall: 'bun --bun nuxt prepare', typecheck: 'bun --bun nuxt typecheck' },
+    scripts: { dev: 'bun --bun nuxt dev', build: 'bun --bun nuxt build', preview: 'bun --bun nuxt preview', start: 'bun run .output/server/index.mjs', postinstall: 'bun --bun nuxt prepare', typecheck: 'nuxt typecheck' },
     dependencies: {}, devDependencies: {}
   }
   const cfg = {

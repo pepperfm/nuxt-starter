@@ -20,9 +20,6 @@ export function ui(c) {
     c.imports.add("import tailwindcss from '@tailwindcss/vite'")
     c.cfg.vite = { plugins: [raw('tailwindcss()')] }
     c.cfg.shadcn = { prefix: 'Ui', componentDir: '@/components/ui' }
-    // shadcn exports Vue SFCs through TS barrels; Nuxt's non-Vue type contexts need its official shim.
-    // CI also injects a deliberate SFC type error to ensure vue-tsc still checks the actual component.
-    c.cfg.typescript.shim = true
     button = '<UiButton><slot /></UiButton>'
     css = `@import "tailwindcss";
 @import "./base.css";

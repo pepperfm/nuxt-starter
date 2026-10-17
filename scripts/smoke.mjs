@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { mkdir, writeFile, readFile } from 'node:fs/promises'
 import { spawn, spawnSync } from 'node:child_process'
 import { normalize } from '../src/options.mjs'
-import { buildProject, writeProject, run } from '../src/generator.mjs'
+import { buildProject, writeProject, finishProject, run } from '../src/generator.mjs'
 const scenario = process.argv[2] ?? 'nuxt-ui'
 const matrix = {
   none: { ui: 'none', backend: 'none', modules: 'eslint,test' },
@@ -21,23 +21,23 @@ await mkdir(root, { recursive: true })
 const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-git': true, 'no-docker': true } })
 const plan = buildProject(options)
 await writeProject(options, plan)
-await run('bun', ['install'], options.dir)
+// Exercise exactly the consumer setup path, including initial formatting.
+await finishProject({ ...options, install: true, git: false })
 await run('bun', ['run', 'typecheck'], options.dir)
-if (scenario === 'shadcn') {
-  const path = resolve(options.dir, 'app/components/ui/button/Button.vue')
+{
+  const path = resolve(options.dir, scenario === 'shadcn' ? 'app/components/ui/button/Button.vue' : 'app/pages/index.vue')
   const original = await readFile(path, 'utf8')
   try {
     await writeFile(path, original.replace('<script setup lang="ts">', '<script setup lang="ts">\nconst intentionalTypeProbe: number = \'must be rejected\''))
     const probe = spawnSync('bun', ['run', 'typecheck'], { cwd: options.dir, encoding: 'utf8', timeout: 60000 })
     assert.ok(!probe.error, 'SFC typecheck probe failed to execute')
-    assert.notEqual(probe.status, 0, 'Vue SFC type errors must not be hidden by the compatibility shim')
+    assert.notEqual(probe.status, 0, 'Vue SFC type errors must not be silently skipped by the checker')
     assert.match(probe.stdout + probe.stderr, /TS2322/, 'Expected the deliberate string-to-number type error in the Vue SFC')
   } finally { await writeFile(path, original) }
 }
 if (options.features.includes('queue')) await run('bun', ['run', 'typecheck:worker'], options.dir)
 await run('bun', ['run', 'test'], options.dir)
-// Formatting is generated deterministically; fix style once, then require a clean lint run.
-await run('bun', ['run', 'lint:fix'], options.dir)
+// No fixes here: the installed generated app must pass its own CI unchanged.
 await run('bun', ['run', 'lint'], options.dir)
 if (options.features.includes('hub')) {
   await run('bun', ['run', 'db:generate'], options.dir)
