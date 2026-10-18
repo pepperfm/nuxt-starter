@@ -1,5 +1,5 @@
 {
-  "name": "@pepperfm/nuxt-starter",
+  "name": "@pepper_fm/nuxt-starter",
   "version": "0.1.0",
   "description": "Interactive Nuxt starter: choose a UI, official modules and a self-hosted backend.",
   "type": "module",
@@ -29,5 +29,9 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pepperfm/nuxt-starter.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   }
 }

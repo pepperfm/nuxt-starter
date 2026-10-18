@@ -4,9 +4,16 @@
 
 **Bun по умолчанию — и пакетный менеджер, и production runtime.** Каждый пресет генерирует `nitro: { preset: 'bun' }`. Воркеры и systemd запускают Bun. Docker — только для локальных PostgreSQL/MySQL и Redis; примеры production-деплоя рассчитаны на обычную Ubuntu, systemd и Nginx.
 
-## Запуск из репозитория
+## Запуск
 
-Пакет пока не опубликован в npm. Не используйте выдуманную команду `bunx @pepperfm/starter`.
+После публикации пакета в npm можно запускать CLI без клонирования репозитория:
+
+```sh
+bunx --bun @pepper_fm/nuxt-starter@latest my-app
+bunx --bun @pepper_fm/nuxt-starter@latest my-app --i18n --mdc
+```
+
+До первой публикации (или для разработки генератора) используйте исходники:
 
 ```sh
 git clone https://github.com/pepperfm/nuxt-starter.git
@@ -15,7 +22,7 @@ bun install
 bun run dev ../my-app
 ```
 
-После публикации имени `@pepperfm/nuxt-starter` в npm будет доступен обычный запуск через `bunx`. До публикации надёжный путь — клонировать репозиторий и выполнить команду выше.
+Имя npm-пакета — `@pepper_fm/nuxt-starter` (npm-пользователь `pepper_fm`); GitHub-репозиторий остаётся `pepperfm/nuxt-starter`.
 
 ### Без интерактива — для CI и агентов
 
@@ -76,6 +83,49 @@ Email verification/reset с доставкой писем, OAuth-провайд�
 См. `bun run dev --help`. Полезные: `--no-install`, `--no-git`, `--no-docker`, `--no-deploy`, `--locales ru,en`, `--modules ''`, `--features ''`.
 
 Генератор никогда не перезаписывает существующий каталог, не запускает миграции и не поднимает Docker автоматически. При ошибке установки файлы сохраняются. `.env` имеет права 0600 и исключён из Git; `.env.example` не содержит сгенерированный secret.
+
+## Публикация в npm
+
+**Изменения в `master` не публикуются автоматически.** Обычный CI выполняет тесты. Публикацию запускает только **опубликованный стабильный GitHub Release**, причём после повторных проверок генератора и smoke-сценариев. Pre-release не публикуется.
+
+### Однократная настройка
+
+Если `@pepper_fm/nuxt-starter` ещё не существует в npm, сначала один раз опубликуйте `0.1.0` вручную из обновлённого `master`:
+
+```sh
+git pull
+npm whoami                  # должно быть pepper_fm
+npm pack --dry-run
+npm publish --access public
+```
+
+Если версия `0.1.0` **уже опубликована**, не публикуйте её повторно: npm запрещает повторную публикацию одинаковой версии.
+
+Затем в **npmjs.com → Packages → @pepper_fm/nuxt-starter → Settings → Trusted publishing** добавьте GitHub Actions publisher:
+
+| Поле | Значение |
+|---|---|
+| Organization or user | `pepperfm` |
+| Repository | `nuxt-starter` |
+| Workflow filename | `publish.yml` |
+| Environment name | оставить пустым |
+| Allowed actions | **Allow `npm publish`** (нужно отметить явно) |
+
+Workflow `.github/workflows/publish.yml` использует npm Trusted Publishing через OIDC (`id-token: write`): не нужны `NPM_TOKEN` и другие долгоживущие токены. Важно: новую настройку Trusted Publisher требуется подтвердить первой успешной публикацией из CI в течение **двух дней**, иначе её придётся создать заново. Документация: https://docs.npmjs.com/trusted-publishers/.
+
+### Следующий релиз
+
+Увеличьте версию в `package.json`, закоммитьте и отправьте её в `master`, после чего опубликуйте GitHub Release с совпадающим тегом `vX.Y.Z`:
+
+```sh
+npm version patch --no-git-tag-version
+git add package.json
+git commit -m "chore: bump package version"
+git push origin master
+gh release create "v$(node -p 'require("./package.json").version')" --target master --generate-notes
+```
+
+Проверки релиза должны пройти успешно. Затем workflow сверит тег с `package.json` и выполнит `npm publish --access public` в npm под `@pepper_fm/nuxt-starter`. Если версия уже существует в npm, она не может быть опубликована повторно. Никакой публикации после обычного `git push` нет.
 
 ## После генерации
 
