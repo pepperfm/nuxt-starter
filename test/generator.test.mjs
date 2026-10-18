@@ -104,6 +104,17 @@ test('generated .gitignore excludes local IDE state, caches and secrets without 
     ]) assert.equal(check(tracked), false, tracked + ' should be kept in git')
   } finally { await rm(root, { recursive: true, force: true }) }
 })
+test('dependency versions include patched releases and explicit Vite for Vitest 5', () => {
+  const p = buildProject(opts({ ui: 'nuxt-ui', backend: 'fullstack', modules: 'eslint,test' }))
+  assert.equal(p.pkg.dependencies.nuxt, '^4.6.2')
+  assert.equal(p.pkg.dependencies['drizzle-orm'], '1.0.0-beta.21')
+  assert.equal(p.pkg.dependencies['drizzle-kit'], '1.0.0-beta.21')
+  assert.equal(p.pkg.dependencies.mysql2, undefined)
+  assert.equal(p.pkg.devDependencies.vitest, '^5.0.5')
+  assert.equal(p.pkg.devDependencies.vite, '^8.3.4')
+  const mysql = buildProject(opts({ ui: 'none', backend: 'data', database: 'mysql', modules: 'test' }))
+  assert.equal(mysql.pkg.dependencies.mysql2, '^3.23.1')
+})
 test('render matrix: all individual modules with every UI and backend preset', () => {
   let count = 0
   for (const kit of uis) for (const backend of ['none', 'data', 'fullstack']) for (const mod of ['', ...modules.map(x => x.value), modules.map(x => x.value).join(',')]) {

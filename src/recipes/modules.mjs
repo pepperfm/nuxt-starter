@@ -9,7 +9,7 @@ export function extras(c) {
 export default withNuxt({ ignores: ['.data/**', '.output/**'] })`)
   }
   if (c.has('test')) {
-    c.add('vitest', true); c.pkg.scripts.test = 'vitest run'
+    c.add('vitest', true); c.add('vite', true); c.pkg.scripts.test = 'vitest run'
     c.file('vitest.config.ts', `import { defineConfig } from 'vitest/config'
 export default defineConfig({ test: { include: ['tests/**/*.test.ts'], environment: 'node' } })`)
     c.file('tests/note.test.ts', `import { describe, it, expect } from 'vitest'
