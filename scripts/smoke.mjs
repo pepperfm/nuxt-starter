@@ -1,7 +1,7 @@
 /** Network/infrastructure integration suite. Run on CI or a machine with Bun and the selected services. */
 import assert from 'node:assert/strict'
 import { resolve } from 'node:path'
-import { mkdir, writeFile, readFile } from 'node:fs/promises'
+import { mkdir, writeFile, readFile, rm } from 'node:fs/promises'
 import { spawn, spawnSync } from 'node:child_process'
 import { normalize } from '../src/options.mjs'
 import { buildProject, writeProject, finishProject, run } from '../src/generator.mjs'
@@ -23,6 +23,32 @@ const plan = buildProject(options)
 await writeProject(options, plan)
 // Exercise exactly the consumer setup path, including initial formatting.
 await finishProject({ ...options, install: true, git: false })
+// Exercise actual ESLint formatting behavior against a deliberately unformatted SFC.
+if (scenario === 'shadcn') {
+  const path = resolve(options.dir, 'app/components/FormattingProbe.vue')
+  await writeFile(path, `<script setup lang="ts">
+const flags = { active: true, label: 'Ready', role: 'status' }
+let output = 'Not ready'
+if (flags.active) { output = flags.label }
+else { output = 'Unavailable' }
+</script>
+<template>
+  <button v-if="flags.active" type="button" class="probe" :title="flags.label" :disabled="!flags.active">{{ output }}</button>
+</template>
+`)
+  try {
+    const unformatted = spawnSync('bun', ['run', 'lint'], { cwd: options.dir, encoding: 'utf8', timeout: 60000 })
+    assert.notEqual(unformatted.status, 0, 'Unformatted Vue props/scripts should fail lint')
+    await run('bun', ['run', 'lint:fix'], options.dir)
+    const fixed = await readFile(path, 'utf8')
+    assert.match(fixed, /const flags = \{\n\s+active: true,/)
+    assert.match(fixed, /label: 'Ready',\n\s+role: 'status'/)
+    assert.match(fixed, /\} else \{/)
+    assert.match(fixed, /<button\n\s+v-if=/)
+    assert.match(fixed, /\n\s+:disabled=/)
+    await run('bun', ['run', 'lint'], options.dir)
+  } finally { await rm(path) }
+}
 await run('bun', ['run', 'typecheck'], options.dir)
 {
   const path = resolve(options.dir, scenario === 'shadcn' ? 'app/components/ui/button/Button.vue' : 'app/pages/index.vue')

@@ -26,6 +26,19 @@ test('setup skips absent formatters; typechecker uses its Node shebang without w
   assert.equal(buildProject(options({})).pkg.scripts.typecheck, 'nuxt typecheck')
 })
 
+test('ESLint defaults format Vue props, JS object literals and if-else braces', () => {
+  const project = buildProject(options({ modules: 'eslint', backend: 'none' }))
+  const cfg = project.files.get('eslint.config.mjs')
+  assert.match(project.files.get('nuxt.config.ts'), /stylistic/)
+  assert.match(cfg, /@stylistic\/brace-style/)
+  assert.match(cfg, /1tbs/)
+  assert.match(cfg, /@stylistic\/object-curly-newline/)
+  assert.match(cfg, /minProperties: 3/)
+  assert.match(cfg, /@stylistic\/object-property-newline/)
+  assert.match(cfg, /vue\/max-attributes-per-line/)
+  assert.match(cfg, /singleline: \{ max: 2 \}/)
+  assert.match(cfg, /vue\/first-attribute-linebreak/)
+})
 test('Content selects runtime-native SQLite without adding a compiled addon', () => {
   const p = buildProject(options({ modules: 'content' }))
   assert.equal(p.pkg.engines.node, '>=22.13.0')
