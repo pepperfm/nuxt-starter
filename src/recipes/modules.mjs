@@ -3,8 +3,8 @@ import { raw } from '../context.mjs'
 export function extras(c) {
   if (c.has('eslint')) {
     c.module('@nuxt/eslint'); c.add('eslint', true)
-    c.pkg.scripts.lint = 'eslint .'
-    c.pkg.scripts['lint:fix'] = 'eslint . --fix'
+    c.pkg.scripts.lint = 'eslint . --max-warnings 0'
+    c.pkg.scripts['lint:fix'] = 'eslint . --fix --max-warnings 0'
     c.file('eslint.config.mjs', `import withNuxt from './.nuxt/eslint.config.mjs'
 export default withNuxt({ ignores: ['.data/**', '.output/**'] })`)
   }

@@ -68,6 +68,13 @@ test('four UI alternatives remain isolated', () => {
     assert.equal(p.files.has('components.json'), kit.value === 'shadcn')
   }
 })
+test('shadcn Button class has a default and ESLint rejects all warnings', () => {
+  const plan = buildProject(opts({ ui: 'shadcn', backend: 'none', modules: 'eslint,test' }))
+  const button = plan.files.get('app/components/ui/button/Button.vue')
+  assert.match(button, /class: ''/)
+  assert.equal(plan.pkg.scripts.lint, 'eslint . --max-warnings 0')
+  assert.equal(plan.pkg.scripts['lint:fix'], 'eslint . --fix --max-warnings 0')
+})
 test('render matrix: all individual modules with every UI and backend preset', () => {
   let count = 0
   for (const kit of uis) for (const backend of ['none', 'data', 'fullstack']) for (const mod of ['', ...modules.map(x => x.value), modules.map(x => x.value).join(',')]) {

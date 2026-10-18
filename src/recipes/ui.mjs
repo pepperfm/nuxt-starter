@@ -48,7 +48,7 @@ export function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)) }`)
 import type { HTMLAttributes } from 'vue'
 import { Primitive, type PrimitiveProps } from 'reka-ui'
 import { cn } from '@/lib/utils'
-const props = withDefaults(defineProps<PrimitiveProps & { class?: HTMLAttributes['class'] }>(), { as: 'button' })
+const props = withDefaults(defineProps<PrimitiveProps & { class?: HTMLAttributes['class'] }>(), { as: 'button', class: '' })
 </script>
 
 <template>
