@@ -1,8 +1,10 @@
+import { projectGitignore } from './gitignore.mjs'
+
 export function base(c) {
   for (const p of ['nuxt', 'vue', 'vue-router', 'zod']) c.add(p)
   for (const p of ['typescript', 'vue-tsc', '@types/node']) c.add(p, true)
   c.env.push('NUXT_PUBLIC_SITE_URL=http://localhost:3000')
-  c.file('.gitignore', 'node_modules/\n.nuxt/\n.output/\n.data/\n.env\n.env.*\n!.env.example\ncoverage/\n')
+  c.file('.gitignore', projectGitignore)
   c.file('.editorconfig', 'root = true\n\n[*]\ncharset = utf-8\nindent_style = space\nindent_size = 2\nend_of_line = lf\ninsert_final_newline = true\ntrim_trailing_whitespace = true\n')
   c.file('tsconfig.json', JSON.stringify({ files: [], references: [
     { path: './.nuxt/tsconfig.app.json' }, { path: './.nuxt/tsconfig.server.json' },

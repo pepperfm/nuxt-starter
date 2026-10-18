@@ -75,6 +75,35 @@ test('shadcn Button class has a default and ESLint rejects all warnings', () => 
   assert.equal(plan.pkg.scripts.lint, 'eslint . --max-warnings 0')
   assert.equal(plan.pkg.scripts['lint:fix'], 'eslint . --fix --max-warnings 0')
 })
+test('generated .gitignore excludes local IDE state, caches and secrets without hiding project files', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'pepperfm-ignore-'))
+  try {
+    const content = buildProject(opts({ ui: 'shadcn', backend: 'none' })).files.get('.gitignore')
+    await writeFile(join(root, '.gitignore'), content)
+    const init = spawnSync('git', ['init', '-q'], { cwd: root, encoding: 'utf8' })
+    assert.equal(init.status, 0, init.stderr)
+
+    const check = path => {
+      const result = spawnSync('git', ['check-ignore', '-q', '--no-index', path], { cwd: root, encoding: 'utf8' })
+      assert.ok([0, 1].includes(result.status), result.stderr)
+      return result.status === 0
+    }
+    for (const ignored of [
+      'node_modules/pkg/index.js', '.nuxt/types.d.ts', '.output/server/index.mjs',
+      '.data/app.db', '.idea/workspace.xml', '.vscode/settings.json',
+      '.zed/settings.json', '.fleet/settings.json', 'editor.code-workspace',
+      '.DS_Store', 'app/.DS_Store', 'Thumbs.db', '.env', '.env.local',
+      '.env.production', 'coverage/index.html', 'playwright-report/index.html',
+      'logs/debug.log', 'tmp/cache.json', '.vercel/output.json', '.wrangler/state.json'
+    ]) assert.equal(check(ignored), true, ignored + ' should be ignored')
+    for (const tracked of [
+      'bun.lock', 'pnpm-lock.yaml', 'package-lock.json', 'yarn.lock',
+      'package.json', 'nuxt.config.ts', '.env.example', '.env.production.example',
+      '.env.sample', '.env.template', 'server/db/migrations/0001.sql',
+      'AGENTS.md', '.github/workflows/ci.yml'
+    ]) assert.equal(check(tracked), false, tracked + ' should be kept in git')
+  } finally { await rm(root, { recursive: true, force: true }) }
+})
 test('render matrix: all individual modules with every UI and backend preset', () => {
   let count = 0
   for (const kit of uis) for (const backend of ['none', 'data', 'fullstack']) for (const mod of ['', ...modules.map(x => x.value), modules.map(x => x.value).join(',')]) {

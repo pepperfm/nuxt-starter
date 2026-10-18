@@ -1,9 +1,79 @@
+# Dependencies and package-manager caches
 node_modules/
-.smoke/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.bun/
+
+# Nuxt / Nitro and build output
+.nuxt/
+.output/
+.data/
+.nitro/
+dist/
+.cache/
+.turbo/
+.parcel-cache/
+.vite/
+.vercel/
+.netlify/
+.wrangler/
+
+# Test and tooling output
 coverage/
+.nyc_output/
+playwright-report/
+test-results/
+*.tsbuildinfo
+.eslintcache
+.stylelintcache
+
+# Logs and temporary files
+*.log
+*.log.*
+tmp/
+temp/
+.tmp/
+.temp/
+*.swp
+*.swo
+*~
+*.bak
+
+# Local environment and secrets
 .env
 .env.*
 !.env.example
-*.tgz
+!.env.*.example
+!.env.sample
+!.env.*.sample
+!.env.template
+
+# Editors / IDEs (personal preferences are not project defaults)
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.zed/
+.fleet/
+.history/
+.settings/
+.project
+.classpath
+*.sublime-workspace
+
+# Operating systems
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# This generator's own local artifacts
+.smoke/
 registry-snapshot.json
+*.tgz
