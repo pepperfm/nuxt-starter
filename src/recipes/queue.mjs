@@ -62,7 +62,10 @@ try {
     attempts: 3, backoff: { type: 'exponential', delay: 1000 }, removeOnComplete: 100, removeOnFail: 1000
   })
   console.info('Queued job', job.id)
-} finally { await queue.close(); redis.disconnect() }`)
+} finally {
+  await queue.close()
+  redis.disconnect()
+}`)
   c.file('workers/schedules.ts', `import { Queue } from 'bullmq'
 import { connection, queuePrefix, queueName } from './connection'
 const redis = connection()
@@ -72,7 +75,10 @@ try {
     name: 'heartbeat', data: {}, opts: { attempts: 3, backoff: { type: 'exponential', delay: 1000 }, removeOnComplete: 100, removeOnFail: 1000 }
   })
   console.info('Schedules registered')
-} finally { await queue.close(); redis.disconnect() }`)
+} finally {
+  await queue.close()
+  redis.disconnect()
+}`)
   if (c.has('test')) c.file('tests/worker.test.ts', `import { describe, it, expect } from 'vitest'
 import { processJob } from '../workers/processor'
 describe('worker processor', () => {

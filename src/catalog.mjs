@@ -2,8 +2,8 @@
  * Each generated application must commit its own package-manager lockfile.
  */
 export const versions = Object.freeze({
-  nuxt: '^4.0.0', vue: '^3.5.0', 'vue-router': '^4.5.0',
-  typescript: '^5.9.0', 'vue-tsc': '^3.0.0', '@types/node': '^22.0.0',
+  nuxt: '^4.6.2', vue: '^3.5.0', 'vue-router': '^4.5.0',
+  typescript: '^5.9.0', 'vue-tsc': '^3.0.0', '@types/node': '^24.12.0',
   '@nuxt/ui': '^4.0.0', tailwindcss: '^4.1.0', '@tailwindcss/vite': '^4.1.0',
   'shadcn-nuxt': '^2.0.0', 'reka-ui': '^2.0.0',
   'class-variance-authority': '^0.7.1', clsx: '^2.1.1', 'tailwind-merge': '^3.0.0',
@@ -13,9 +13,9 @@ export const versions = Object.freeze({
   '@nuxt/content': '^3.0.0', '@nuxt/image': '^2.0.0',
   '@vueuse/nuxt': '^13.0.0', '@vueuse/core': '^13.0.0',
   '@pinia/nuxt': '^0.11.0', pinia: '^3.0.0',
-  'nuxt-security': '^2.0.0', vitest: '^3.2.0',
-  '@nuxthub/core': '^0.10.0', 'drizzle-orm': '^0.44.0', 'drizzle-kit': '^0.31.0',
-  postgres: '^3.4.0', mysql2: '^3.14.0', ioredis: '^5.6.0',
+  'nuxt-security': '^2.0.0', vitest: '^5.0.5', vite: '^8.3.4',
+  '@nuxthub/core': '^0.10.8', 'drizzle-orm': '1.0.0-beta.21', 'drizzle-kit': '1.0.0-beta.21',
+  postgres: '^3.4.0', mysql2: '^3.23.1', ioredis: '^5.6.0',
   'better-auth': '^1.7.10', '@better-auth/core': '^1.7.10', '@better-auth/redis-storage': '^1.7.10', bullmq: '^5.58.0', tsx: '^4.20.0', zod: '^4.0.0',
   unstorage: '^1.17.0'
 })

@@ -64,7 +64,10 @@ function createAuth() {
 export function auth() { return instance ??= createAuth() }
 export async function closeAuth() {
   instance = undefined
-  if (redis) { redis.disconnect(); redis = undefined }
+  if (redis) {
+    redis.disconnect()
+    redis = undefined
+  }
 }`)
   c.file('server/plugins/auth-lifecycle.ts', `export default defineNitroPlugin(nitroApp => { nitroApp.hooks.hook('close', closeAuth) })`)
   c.file('server/api/auth/[...all].ts', `import { toWebRequest } from 'h3'
@@ -116,7 +119,10 @@ async function submit() {
     const result = register.value
       ? await authClient.signUp.email({ email: email.value, password: password.value, name: name.value })
       : await authClient.signIn.email({ email: email.value, password: password.value })
-    if (result.error) { error.value = result.error.message ?? 'Authentication failed'; return }
+    if (result.error) {
+      error.value = result.error.message ?? 'Authentication failed'
+      return
+    }
     await navigateTo(${c.has('i18n') ? "localePath('/account')" : "'/account'"})
   } catch { error.value = 'Could not reach the server. Please try again.' }
   finally { pending.value = false }
@@ -151,7 +157,8 @@ async function loadSessions() {
 onMounted(async () => { try { await loadSessions() } catch { error.value = 'Could not load sessions' } })
 async function revoke(token: string) {
   if (pending.value) return
-  pending.value = true; error.value = ''
+  pending.value = true
+  error.value = ''
   try {
     const result = await authClient.revokeSession({ token })
     if (result.error) throw new Error(result.error.message)
@@ -161,7 +168,8 @@ async function revoke(token: string) {
 }
 async function signOut() {
   if (pending.value) return
-  pending.value = true; error.value = ''
+  pending.value = true
+  error.value = ''
   try {
     const result = await authClient.signOut()
     if (result.error) throw new Error(result.error.message)
