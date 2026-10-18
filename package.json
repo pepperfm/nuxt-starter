@@ -1,6 +1,6 @@
 {
   "name": "@pepper_fm/nuxt-starter",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Interactive Nuxt starter: choose a UI, official modules and a self-hosted backend.",
   "type": "module",
   "license": "MIT",
