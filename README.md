@@ -86,46 +86,38 @@ Email verification/reset с доставкой писем, OAuth-провайд�
 
 ## Публикация в npm
 
-**Изменения в `master` не публикуются автоматически.** Обычный CI выполняет тесты. Публикацию запускает только **опубликованный стабильный GitHub Release**, причём после повторных проверок генератора и smoke-сценариев. Pre-release не публикуется.
-
-### Однократная настройка
-
-Если `@pepper_fm/nuxt-starter` ещё не существует в npm, сначала один раз опубликуйте `0.1.0` вручную из обновлённого `master`:
+**Одна команда после твоего обычного коммита:**
 
 ```sh
-git pull
-npm whoami                  # должно быть pepper_fm
-npm pack --dry-run
-npm publish --access public
+# 1. Сам меняешь version в package.json, затем коммитишь:
+git add .
+git commit -m "feat: update starter"
+
+# 2. Проверка → push → ожидание CI → GitHub Release → автоматический npm:
+bun run pub
+
+# Или передай версию явно — скрипт потребует точного совпадения с package.json:
+bun run pub 0.1.3
 ```
 
-Если версия `0.1.0` **уже опубликована**, не публикуйте её повторно: npm запрещает повторную публикацию одинаковой версии.
+В корне лежит `release.mjs`; `bun run pub` вызывает именно его. Скрипт **не меняет** `package.json`, не создаёт коммит и не публикует в npm напрямую. Перед push он:
 
-Затем в **npmjs.com → Packages → @pepper_fm/nuxt-starter → Settings → Trusted publishing** добавьте GitHub Actions publisher:
+1. Проверяет `master`, чистый Git, закоммиченную версию, актуальность `origin/master` и отсутствие такого тега.
+2. Проверяет npm: новая версия ещё не опубликована и выше `latest`.
+3. Выполняет `bun run check`, `bun run test`, dry-run генератора и `npm pack --dry-run`.
+4. Делает `git push origin master`, ждёт **зелёный `Starter CI` на точном SHA** (включая семь smoke-сценариев с БД/Redis) и создаёт GitHub Release только после успеха.
 
-| Поле | Значение |
-|---|---|
-| Organization or user | `pepperfm` |
-| Repository | `nuxt-starter` |
-| Workflow filename | `publish.yml` |
-| Environment name | оставить пустым |
-| Allowed actions | **Allow `npm publish`** (нужно отметить явно) |
-
-Workflow `.github/workflows/publish.yml` использует npm Trusted Publishing через OIDC (`id-token: write`): не нужны `NPM_TOKEN` и другие долгоживущие токены. Важно: новую настройку Trusted Publisher требуется подтвердить первой успешной публикацией из CI в течение **двух дней**, иначе её придётся создать заново. Документация: https://docs.npmjs.com/trusted-publishers/.
-
-### Следующий релиз
-
-Увеличьте версию в `package.json`, закоммитьте и отправьте её в `master`, после чего опубликуйте GitHub Release с совпадающим тегом `vX.Y.Z`:
+Отдельно можно прогнать те же быстрые проверки без push:
 
 ```sh
-npm version patch --no-git-tag-version
-git add package.json
-git commit -m "chore: bump package version"
-git push origin master
-gh release create "v$(node -p 'require("./package.json").version')" --target master --generate-notes
+bun run verify
 ```
 
-Проверки релиза должны пройти успешно. Затем workflow сверит тег с `package.json` и выполнит `npm publish --access public` в npm под `@pepper_fm/nuxt-starter`. Если версия уже существует в npm, она не может быть опубликована повторно. Никакой публикации после обычного `git push` нет.
+**Почему GitHub Actions остаётся:** npm Trusted Publishing через OIDC требует GitHub Actions. `ci.yml` проверяет код и семь генерируемых вариантов **один раз на push/PR в master**, а облегчённый `publish.yml` по стабильному GitHub Release сверяет тег и успешный master CI для того же SHA, затем выполняет `npm publish`. Повторно собирать семь приложений при релизе не нужно.
+
+Trusted publisher в настройках npm для `@pepper_fm/nuxt-starter` должен ссылаться на GitHub user `pepperfm`, repo `nuxt-starter`, workflow `publish.yml` с разрешением `npm publish`. `NPM_TOKEN` не требуется.
+
+**Важно:** если push состоялся, но CI упал, Release не создаётся; поправь код новым коммитом и повтори `bun run pub`. Не создавай релизы вручную с версией, отличающейся от `package.json`. Стабильный CLI допускает версии `X.Y.Z` (без prerelease-суффиксов).
 
 ## После генерации
 
@@ -155,7 +147,7 @@ bun run test:smoke nuxt-ui
 
 `check` дополнительно использует Node 22 для независимой проверки JS-синтаксиса. Runtime приложений от этого не меняется. Unit-тесты также можно запустить локально через `node --test test/*.test.mjs`.
 
-CI проверяет генератор и семь реальных сценариев: четыре UI, Content, PostgreSQL fullstack, MySQL data. Каждый сценарий устанавливает зависимости, запускает typecheck и unit-тесты, проверяет линтинг, собирает и запускает **Nitro Bun**. Fullstack-сценарий дополнительно проверяет SQL-миграции, вход/выход, два устройства, отзыв сессии, проверку Origin, отдельный worker и scheduler. Изолированные GitHub CI services используют контейнеры; production-примеры Docker не используют.
+CI на master/PR проверяет генератор и семь реальных сценариев: четыре UI, Content, PostgreSQL fullstack, MySQL data. Каждый сценарий устанавливает зависимости, запускает typecheck и unit-тесты, проверяет линтинг, собирает и запускает **Nitro Bun**. Fullstack-сценарий дополнительно проверяет SQL-миграции, вход/выход, два устройства, отзыв сессии, проверку Origin, отдельный worker и scheduler. Изолированные GitHub CI services используют контейнеры; production-примеры Docker не используют.
 
 Unit render-matrix проверяет 132 сочетания настроек. Это не равнозначно 132 полноценным браузерным E2E-тестам. Браузерная проверка интерактивных UI-компонентов и исчерпывающий аудит production-безопасности остаются отдельной работой.
 

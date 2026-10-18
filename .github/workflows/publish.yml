@@ -1,6 +1,6 @@
 name: Publish to npm
 
-# Publish only after an explicit stable GitHub Release, never on ordinary pushes.
+# Heavy smoke checks ran on master. Release is an OIDC-only final gate.
 on:
   release:
     types: [published]
@@ -13,86 +13,12 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify:
-    if: ${{ !github.event.release.prerelease }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '24'
-          package-manager-cache: false
-      - uses: oven-sh/setup-bun@v2
-      - name: Check package identity and matching release tag
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: |
-          node --input-type=module <<'NODE'
-          import { readFileSync } from 'node:fs'
-          const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
-          const tag = process.env.RELEASE_TAG
-          if (pkg.name !== '@pepper_fm/nuxt-starter' || tag !== `v${pkg.version}`) {
-            console.error(`Release ${tag} does not match ${pkg.name}@${pkg.version}`)
-            process.exit(1)
-          }
-          console.log(`Verified ${pkg.name}@${pkg.version}`)
-          NODE
-      - run: bun install
-      - run: bun run check
-      - run: bun run test
-      - run: bun bin/starter.mjs ci-dry-run --yes --dry-run --i18n --mdc
-      - run: npm pack --dry-run
-
-  smoke:
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        scenario: [none, nuxt-ui, shadcn, element, content, fullstack, mysql]
-    services:
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_DB: app
-          POSTGRES_USER: app
-          POSTGRES_PASSWORD: app
-        ports: ['5432:5432']
-        options: --health-cmd "pg_isready -U app -d app" --health-interval 5s --health-timeout 5s --health-retries 20
-      mysql:
-        image: mysql:8.4
-        env:
-          MYSQL_DATABASE: app
-          MYSQL_USER: app
-          MYSQL_PASSWORD: app
-          MYSQL_ROOT_PASSWORD: local-root
-        ports: ['3306:3306']
-        options: --health-cmd "mysqladmin ping -h localhost -plocal-root" --health-interval 5s --health-timeout 5s --health-retries 30
-      redis-cache:
-        image: redis:7-alpine
-        ports: ['6379:6379']
-      redis-state:
-        image: redis:7-alpine
-        ports: ['6380:6379']
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun run test:smoke ${{ matrix.scenario }}
-
   publish:
-    needs: [verify, smoke]
+    if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -102,8 +28,21 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      # npm 11.5.1+ is required for OIDC trusted publishing.
+      - name: Verify release version and successful master CI
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { readFileSync } from 'node:fs'
+          const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+          if (pkg.name !== '@pepper_fm/nuxt-starter' || process.env.RELEASE_TAG !== 'v' + pkg.version) {
+            console.error('Release tag and package.json version must match')
+            process.exit(1)
+          }
+          NODE
+          gh run list --workflow ci.yml --branch master --event push \
+            --commit "$(git rev-parse HEAD)" --limit 15 --json conclusion \
+            --jq 'any(.[]; .conclusion == "success")' | grep -qx true
       - run: npm install --global npm@^11
-      - run: npm --version
-      # Do not set NODE_AUTH_TOKEN or use a token-based .npmrc: npm exchanges GitHub OIDC.
       - run: npm publish --access public --registry https://registry.npmjs.org

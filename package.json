@@ -22,7 +22,8 @@
     "test": "bun test ./test",
     "check": "bun scripts/check.mjs",
     "test:smoke": "bun scripts/smoke.mjs",
-    "pub": "bash -c 'set -e; git push origin master; gh release create \"v$1\" --target master --generate-notes' --"
+    "pub": "bun release.mjs",
+    "verify": "bun release.mjs --check-only"
   },
   "dependencies": {
     "@clack/prompts": "^0.11.0"
