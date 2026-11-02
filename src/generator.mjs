@@ -76,11 +76,26 @@ export async function writeProject(options, plan = buildProject(options)) {
   return plan
 }
 
-export async function run(command, args, cwd) {
+// Quiet mode is reserved for internal scaffolding: do not show the disposable
+// Nuxt template path or its "next steps". Preserve child diagnostics on failure.
+export async function run(command, args, cwd, { quiet = false, redactPaths = [] } = {}) {
   await new Promise((accept, reject) => {
-    const child = spawn(command, args, { cwd, stdio: 'inherit', shell: false })
+    const child = spawn(command, args, {
+      cwd, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit', shell: false
+    })
+    let output = ''
+    if (quiet) {
+      for (const stream of [child.stdout, child.stderr]) {
+        stream.on('data', chunk => { output = (output + chunk.toString()).slice(-32_768) })
+      }
+    }
     child.once('error', error => reject(new Error(`Cannot run ${command}: ${error.message}`, { cause: error })))
-    child.once('exit', (code, signal) => code === 0 ? accept() : reject(new Error(`${command} failed (${signal ?? code}). Generated files were preserved.`)))
+    child.once('exit', (code, signal) => {
+      if (code === 0) return accept()
+      const details = redactPaths.reduce((text, path) =>
+        path ? text.split(path).join('<temporary template>') : text, output.trim())
+      reject(new Error(`${command} failed (${signal ?? code}). Generated files were preserved.${details ? '\n' + details : ''}`))
+    })
   })
 }
 export async function finishProject(options, execute = run) {
@@ -90,5 +105,4 @@ export async function finishProject(options, execute = run) {
     // Match the consumer's first CI run: generated source must already satisfy its ESLint preset.
     if (options.modules.includes('eslint')) await execute(options.pm, ['run', 'lint:fix'], options.dir)
   }
-  if (options.git) await execute('git', ['init', '-b', 'master'], options.dir)
 }

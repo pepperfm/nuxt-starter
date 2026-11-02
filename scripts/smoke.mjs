@@ -20,11 +20,11 @@ const matrix = {
 assert.ok(matrix[scenario], 'Unknown smoke scenario')
 const root = resolve('.smoke')
 await mkdir(root, { recursive: true })
-const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-git': true, 'no-docker': true } })
+const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-docker': true } })
 const plan = await buildUITemplateProject(options, buildProject(options))
 await writeProject(options, plan)
 // Exercise exactly the consumer setup path, including initial formatting.
-await finishProject({ ...options, install: true, git: false })
+await finishProject({ ...options, install: true })
 // Exercise actual ESLint formatting behavior against a deliberately unformatted SFC.
 if (scenario === 'shadcn') {
   const path = resolve(options.dir, 'app/components/FormattingProbe.vue')

@@ -4,22 +4,22 @@ import { normalize } from '../src/options.mjs'
 import { buildProject, finishProject } from '../src/generator.mjs'
 
 const options = values => normalize({ target: '/tmp/starter-setup-test', values })
-test('normal setup installs and formats selected ESLint before git init', async () => {
+test('normal setup installs and formats selected ESLint without initializing Git', async () => {
   const calls = []
   await finishProject(options({}), async (...args) => { calls.push(args) })
   assert.deepEqual(calls.map(([cmd, args]) => [cmd, ...args]), [
-    ['bun', 'install'], ['bun', 'run', 'lint:fix'], ['git', 'init', '-b', 'master']
+    ['bun', 'install'], ['bun', 'run', 'lint:fix']
   ])
 })
-test('no-install and no-git never execute implicit setup commands', async () => {
+test('no-install never executes implicit setup commands', async () => {
   const calls = []
-  await finishProject(options({ 'no-install': true, 'no-git': true }), async (...args) => { calls.push(args) })
+  await finishProject(options({ 'no-install': true }), async (...args) => { calls.push(args) })
   await finishProject(options({ 'dry-run': true }), async (...args) => { calls.push(args) })
   assert.deepEqual(calls, [])
 })
 test('setup skips absent formatters; typechecker uses its Node shebang without weakening Vue types', async () => {
   const calls = []
-  await finishProject(options({ modules: '', 'no-git': true }), async (...args) => { calls.push(args) })
+  await finishProject(options({ modules: '' }), async (...args) => { calls.push(args) })
   assert.deepEqual(calls.map(([cmd, args]) => [cmd, ...args]), [['bun', 'install']])
   assert.equal(buildProject(options({ ui: 'shadcn' })).config.typescript.shim, undefined)
   assert.equal(buildProject(options({ ui: 'nuxt-ui' })).config.typescript.shim, undefined)
@@ -45,4 +45,12 @@ test('Content selects runtime-native SQLite without adding a compiled addon', ()
   assert.match(p.files.get('nuxt.config.ts'), /process\.versions\.bun \? 'bun' : 'native'/)
   assert.equal(p.pkg.dependencies['better-sqlite3'], undefined)
   assert.equal(p.pkg.devDependencies['better-sqlite3'], undefined)
+})
+
+test('legacy --no-git flag remains accepted but Git is never initialized', async () => {
+  const calls = []
+  const opts = options({ 'no-git': true })
+  assert.equal(opts.git, undefined)
+  await finishProject(opts, async (...args) => { calls.push(args) })
+  assert.ok(calls.every(([command]) => command !== 'git'))
 })

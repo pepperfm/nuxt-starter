@@ -9,6 +9,7 @@ const help = `PepperFM Nuxt Starter
 
 UI is the first interactive step, followed by modules, backend and local infrastructure.
 Bun is the default package manager and the production runtime (nitro.preset = 'bun').
+Git is never initialized; run git init yourself when ready.
 
   --ui nuxt-ui|shadcn|element|none
   --template latest|starter|dashboard|portfolio|landing|docs|saas|calendar|chat|editor|changelog (Nuxt UI only)
@@ -19,7 +20,7 @@ Bun is the default package manager and the production runtime (nitro.preset = 'b
   --features hub,redis,auth,queue Override the backend preset (empty string means none)
   --database postgresql|mysql   Default: postgresql; auth currently PostgreSQL only
   --pm bun|npm|pnpm         Installer selection; production runtime stays Bun
-  --no-install --no-git --no-docker --no-deploy
+  --no-install --no-docker --no-deploy
   --dry-run                Print a plan without writing files
   --yes, -y                Use flags/defaults without interactive prompts
   --help --version

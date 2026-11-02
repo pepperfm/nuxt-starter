@@ -43,7 +43,7 @@ export async function downloadUITemplate(options, execute = run) {
       '--bun', 'create-nuxt@latest', destination,
       '--template', 'ui/' + options.template,
       '--no-install', '--no-gitInit', '--packageManager', options.pm
-    ], scratch)
+    ], scratch, { quiet: true, redactPaths: [scratch, destination] })
     return await readScaffold(destination)
   } finally {
     await rm(scratch, { recursive: true, force: true })

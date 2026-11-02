@@ -65,6 +65,6 @@ export function normalize(input, cwd = process.cwd()) {
     name, dir, ui, template, modules: moduleNames.filter(n => selected.includes(n)),
     features: featureNames.filter(n => features.has(n)), database, pm, locales,
     docker: !values['no-docker'], deploy: !values['no-deploy'],
-    install: !values['no-install'], git: !values['no-git'], dryRun: !!values['dry-run'], notices
+    install: !values['no-install'], dryRun: !!values['dry-run'], notices
   }
 }

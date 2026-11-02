@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { normalize } from '../src/options.mjs'
 import { uiTemplates } from '../src/catalog.mjs'
 import { buildProject } from '../src/generator.mjs'
-import { combineUITemplate, buildUITemplateProject } from '../src/ui-template.mjs'
+import { combineUITemplate, buildUITemplateProject, downloadUITemplate } from '../src/ui-template.mjs'
 
 const options = values => normalize({ target: '/tmp/nuxt-template-test', values })
 
@@ -78,4 +78,18 @@ test('Dry run never downloads an external UI template', async () => {
   const plan = buildProject(opts)
   const result = await buildUITemplateProject(opts, plan, () => { throw new Error('Unexpected network') })
   assert.equal(result, plan)
+})
+
+test('the official Nuxt template is fetched quietly without Git init', async () => {
+  const opts = options({ template: 'dashboard', backend: 'none' })
+  let command
+  await assert.rejects(downloadUITemplate(opts, async (...args) => {
+    command = args
+    throw new Error('offline fixture')
+  }), /offline fixture/)
+
+  assert.equal(command[0], 'bunx')
+  assert.ok(command[1].includes('--no-gitInit'))
+  assert.deepEqual(command[3].quiet, true)
+  assert.ok(command[3].redactPaths.some(path => path.includes('pepperfm-nuxt-ui-')))
 })
