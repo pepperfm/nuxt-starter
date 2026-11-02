@@ -90,7 +90,8 @@ export async function run(command, args, cwd, { quiet = false, redactPaths = [] 
       }
     }
     child.once('error', error => reject(new Error(`Cannot run ${command}: ${error.message}`, { cause: error })))
-    child.once('exit', (code, signal) => {
+    // 'close' waits for stdout/stderr to flush, unlike 'exit'.
+    child.once('close', (code, signal) => {
       if (code === 0) return accept()
       const details = redactPaths.reduce((text, path) =>
         path ? text.split(path).join('<temporary template>') : text, output.trim())
