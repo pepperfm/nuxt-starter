@@ -42,7 +42,7 @@ export async function downloadUITemplate(options, execute = run) {
     await execute('bunx', [
       '--bun', 'create-nuxt@latest', destination,
       '--template', 'ui/' + options.template,
-      '--no-install', '--no-modules', '--packageManager', options.pm
+      '--no-install', '--no-gitInit', '--packageManager', options.pm
     ], scratch)
     return await readScaffold(destination)
   } finally {
