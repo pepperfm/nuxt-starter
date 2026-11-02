@@ -2,9 +2,9 @@
  * Each generated application must commit its own package-manager lockfile.
  */
 export const versions = Object.freeze({
-  nuxt: '^4.6.2', vue: '^3.5.0', 'vue-router': '^4.5.0',
+  nuxt: '^4.6.3', vue: '^3.5.0', 'vue-router': '^4.5.0',
   typescript: '^5.9.0', 'vue-tsc': '^3.0.0', '@types/node': '^24.12.0',
-  '@nuxt/ui': '^4.0.0', tailwindcss: '^4.1.0', '@tailwindcss/vite': '^4.1.0',
+  '@nuxt/ui': '^4.12.0', tailwindcss: '^4.1.0', '@tailwindcss/vite': '^4.1.0',
   'shadcn-nuxt': '^2.0.0', 'reka-ui': '^2.0.0',
   'class-variance-authority': '^0.7.1', clsx: '^2.1.1', 'tailwind-merge': '^3.0.0',
   '@element-plus/nuxt': '^1.0.0', 'element-plus': '^2.9.0', dayjs: '^1.11.0',
