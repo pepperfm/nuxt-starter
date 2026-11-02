@@ -29,6 +29,12 @@ bun run dev ../my-app
 ```sh
 bun run dev ../my-app --yes --ui nuxt-ui --i18n --mdc
 
+# Dashboard + PostgreSQL, Redis, Better Auth and queues
+bun run dev ../dashboard --yes --ui nuxt-ui --template dashboard --backend fullstack
+
+# Portfolio UI with optional data backend
+bun run dev ../portfolio --yes --ui nuxt-ui --template portfolio --backend data
+
 # Без backend и без UI-компонентов
 bun run dev ../landing --yes --ui none --backend none --modules eslint,test
 
@@ -44,7 +50,9 @@ bun run dev ../preview --yes --dry-run
 
 ## Шаги мастера
 
-1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий.
+1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий. При Nuxt UI — выбор шаблона: текущий `latest` или официальный Starter, Dashboard, Portfolio, Landing, Docs, SaaS, Calendar, Chat, Editor, Changelog. Дизайн сохраняется, backend и инфраструктура добавляются отдельно.
+
+   Официальный шаблон скачивается во временный каталог и объединяется с рецептами до записи целевого проекта. При коллизии путей генерация прекращается. SaaS нельзя совмещать с текущим auth-рецептом (конфликт `/login`); Chat уже содержит свой backend, для него только `--backend none`. Загрузка требует сети; `--dry-run` сеть не использует.
 2. **Модули:** ESLint, Vitest, i18n, MDC, Content, Image, VueUse, Pinia, Nuxt Security.
 3. **Backend:** NuxtHub + Drizzle, Redis cache/KV, Better Auth, BullMQ + расписания. Необходимые зависимости добавляются автоматически.
 4. **Инфраструктура:** Bun по умолчанию; можно выбрать другой установщик пакетов, но Nitro runtime остаётся Bun. Локальный Compose и Ubuntu-примеры независимы.
@@ -157,6 +165,7 @@ Unit render-matrix проверяет 132 сочетания настроек. �
 - `src/options.mjs` — флаги, проверки, зависимости между возможностями.
 - `src/prompts.mjs` — пошаговый Clack UI.
 - `src/recipes/` — UI, модули, БД, auth, queues, infra.
+- `src/ui-template.mjs` — загрузка официального Nuxt UI шаблона и объединение с рецептами.
 - `src/generator.mjs` — чистая сборка плана + безопасная запись.
 - `src/catalog.mjs` — поддерживаемые package ranges; generated lockfile фиксирует конкретные версии.
 - `test/` — unit/file-system/CLI проверки.

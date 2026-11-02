@@ -1,6 +1,6 @@
 import { parseArgs } from 'node:util'
 import { basename, resolve, parse } from 'node:path'
-import { modules, uis, backends, backendFeatures } from './catalog.mjs'
+import { modules, uis, uiTemplates, backends, backendFeatures } from './catalog.mjs'
 
 const csv = value => [...new Set(value.split(',').map(s => s.trim()).filter(Boolean))]
 export const moduleNames = modules.map(m => m.value)
@@ -8,7 +8,7 @@ const featureNames = backendFeatures.map(m => m.value)
 
 export function parseCLI(argv) {
   const booleans = ['yes', 'help', 'version', 'dry-run', 'no-install', 'no-git', 'no-docker', 'no-deploy', ...moduleNames]
-  const strings = ['ui', 'modules', 'backend', 'features', 'database', 'pm', 'locales']
+  const strings = ['ui', 'template', 'modules', 'backend', 'features', 'database', 'pm', 'locales']
   const options = Object.fromEntries([
     ...booleans.map(name => [name, { type: 'boolean', ...(name === 'yes' ? { short: 'y' } : {}) }]),
     ...strings.map(name => [name, { type: 'string' }])
@@ -24,6 +24,9 @@ export function normalize(input, cwd = process.cwd()) {
   const aliases = { nuxtui: 'nuxt-ui', 'shadcn-vue': 'shadcn', 'element-plus': 'element' }
   const ui = aliases[values.ui] ?? values.ui ?? 'nuxt-ui'
   if (!uis.some(item => item.value === ui)) throw new Error(`Unknown UI: ${ui}`)
+  const template = values.template ?? 'latest'
+  if (!uiTemplates.some(item => item.value === template)) throw new Error(`Unknown Nuxt UI template: ${template}`)
+  if (ui !== 'nuxt-ui' && template !== 'latest') throw new Error('--template is available only with --ui nuxt-ui.')
   const preset = values.backend ?? 'fullstack'
   if (!Object.hasOwn(backends, preset)) throw new Error(`Unknown backend preset: ${preset}`)
   let selected = values.modules === undefined ? ['eslint', 'test'] : csv(values.modules)
@@ -40,6 +43,8 @@ export function normalize(input, cwd = process.cwd()) {
   const features = new Set(requested)
   if (features.has('auth')) { features.add('hub'); features.add('redis') }
   if (features.has('queue')) features.add('redis')
+  if (template === 'saas' && features.has('auth')) throw new Error('The SaaS template already has /login; select backend features without auth or use another template.')
+  if (template === 'chat' && features.size) throw new Error('The Chat template ships its own auth/database; use --backend none and do not select backend features.')
   const database = values.database ?? 'postgresql'
   if (!['postgresql', 'mysql'].includes(database)) throw new Error(`Unknown database: ${database}`)
   if (database === 'mysql' && features.has('auth')) throw new Error('The auth recipe currently supports PostgreSQL. Use --database postgresql or omit auth from --features.')
@@ -57,7 +62,7 @@ export function normalize(input, cwd = process.cwd()) {
   const name = basename(dir)
   if (!/^[a-z0-9][a-z0-9._-]{0,100}$/.test(name)) throw new Error('Use a lowercase project name with letters, digits, dots, hyphens or underscores.')
   return {
-    name, dir, ui, modules: moduleNames.filter(n => selected.includes(n)),
+    name, dir, ui, template, modules: moduleNames.filter(n => selected.includes(n)),
     features: featureNames.filter(n => features.has(n)), database, pm, locales,
     docker: !values['no-docker'], deploy: !values['no-deploy'],
     install: !values['no-install'], git: !values['no-git'], dryRun: !!values['dry-run'], notices

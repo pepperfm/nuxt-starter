@@ -27,6 +27,21 @@ export const uis = [
   { value: 'none', label: 'No UI library', hint: 'Vue + plain CSS' }
 ]
 
+/** Official free Nuxt UI templates. 'latest' keeps the current recipe-based starter. */
+export const uiTemplates = [
+  { value: 'latest', label: 'Latest (plain starter)', hint: 'Current PepperFM generator; no external template' },
+  { value: 'starter', label: 'Starter', hint: 'Official minimal Nuxt UI template' },
+  { value: 'dashboard', label: 'Dashboard', hint: 'Sidebar, command palette, charts and admin pages' },
+  { value: 'portfolio', label: 'Portfolio', hint: 'Projects, blog and personal pages' },
+  { value: 'landing', label: 'Landing', hint: 'Landing page with content blocks' },
+  { value: 'docs', label: 'Docs', hint: 'Documentation powered by Nuxt Content' },
+  { value: 'saas', label: 'SaaS', hint: 'Marketing and documentation; already has a login page' },
+  { value: 'calendar', label: 'Calendar', hint: 'Calendar views and event interactions' },
+  { value: 'chat', label: 'Chat', hint: 'Already includes its own NuxtHub/Auth stack' },
+  { value: 'editor', label: 'Editor', hint: 'Rich text editing experience' },
+  { value: 'changelog', label: 'Changelog', hint: 'GitHub releases and change logs' }
+]
+
 export const modules = [
   { value: 'eslint', label: 'ESLint', hint: 'Nuxt · lint and lint:fix' },
   { value: 'test', label: 'Vitest', hint: 'Unit tests · independent of a UI library' },
