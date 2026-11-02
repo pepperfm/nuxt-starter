@@ -27,7 +27,7 @@ async function readScaffold(dir) {
       const stats = await lstat(filename)
       if (stats.isSymbolicLink()) throw new Error('Nuxt UI template contains a symlink: ' + relativePath)
       if (stats.isDirectory()) await walk(filename)
-      else if (stats.isFile()) files.set(relativePath, await readFile(filename, 'utf8'))
+      else if (stats.isFile()) files.set(relativePath, await readFile(filename))
     }
   }
   await walk(dir)
@@ -51,7 +51,7 @@ export async function downloadUITemplate(options, execute = run) {
 }
 
 function environment(original, generated) {
-  const lines = original.trimEnd().split('\n').filter(Boolean)
+  const lines = String(original).trimEnd().split('\n').filter(Boolean)
   const defined = new Set(lines.flatMap(line => {
     const key = /^([A-Za-z_][A-Za-z0-9_]*)=/.exec(line)
     return key ? [key[1]] : []
@@ -129,9 +129,11 @@ export function combineUITemplate(templateFiles, generated, options) {
   for (const filename of ['package.json', 'nuxt.config.ts', 'app/app.vue']) {
     if (!result.has(filename)) throw new Error('Nuxt UI template is missing ' + filename)
   }
+  if (result.has('nuxt.template.config.ts')) throw new Error('Template already uses nuxt.template.config.ts; cannot safely compose.')
   result.set('nuxt.template.config.ts', result.get('nuxt.config.ts'))
   result.set('nuxt.config.ts', mergeConfig(generated.config))
   result.set('package.json', mergePackage(result.get('package.json'), generated.files.get('package.json'), options))
+  if (result.has('app/assets/css/pepperfm-starter.css')) throw new Error('Template already uses the reserved starter CSS path.')
   result.set('app/assets/css/pepperfm-starter.css', scopedStyles(generated.files.get('app/assets/css/base.css')))
 
   if (result.has('README.md')) result.set('README.template.md', result.get('README.md'))
