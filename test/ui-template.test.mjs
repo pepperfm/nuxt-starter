@@ -27,8 +27,9 @@ function fixture() {
   ])
 }
 
-test('UI template selection leaves the old latest preset intact', () => {
-  assert.equal(options({}).template, 'latest')
+test('Basic template naming distinguishes visuals from dependency freshness', () => {
+  assert.equal(options({}).template, 'basic')
+  assert.equal(options({ template: 'latest' }).template, 'basic')
   assert.equal(options({ ui: 'nuxt-ui', template: 'dashboard' }).template, 'dashboard')
   assert.ok(uiTemplates.some(item => item.value === 'portfolio'))
   assert.throws(() => options({ ui: 'shadcn', template: 'dashboard' }), /only with --ui nuxt-ui/)

@@ -50,7 +50,7 @@ bun run dev ../preview --yes --dry-run
 
 ## Шаги мастера
 
-1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий. При Nuxt UI — выбор шаблона: текущий `latest` или официальный Starter, Dashboard, Portfolio, Landing, Docs, SaaS, Calendar, Chat, Editor, Changelog. Дизайн сохраняется, backend и инфраструктура добавляются отдельно.
+1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий. При Nuxt UI — выбор шаблона: встроенный **Basic** (ранее `latest`) или официальный Starter, Dashboard, Portfolio, Landing, Docs, SaaS, Calendar, Chat, Editor, Changelog. Дизайн сохраняется, backend и инфраструктура добавляются отдельно. При Bun после `bun install` генератор автоматически выполняет `bun update`: обновляет прямые и транзитивные пакеты в рамках совместимых semver-диапазонов и актуализирует `package.json` и `bun.lock`. Не выполняется `--latest` для несовместимых мажорных версий и явно закреплённых beta-зависимостей. При `--no-install` обновление не выполняется.
 
    Официальный шаблон скачивается во временный каталог и объединяется с рецептами до записи целевого проекта. При коллизии путей генерация прекращается. SaaS нельзя совмещать с текущим auth-рецептом (конфликт `/login`); Chat уже содержит свой backend, для него только `--backend none`. Загрузка требует сети; `--dry-run` сеть не использует.
 2. **Модули:** ESLint, Vitest, i18n, MDC, Content, Image, VueUse, Pinia, Nuxt Security.

@@ -10,9 +10,10 @@ const help = `PepperFM Nuxt Starter
 UI is the first interactive step, followed by modules, backend and local infrastructure.
 Bun is the default package manager and the production runtime (nitro.preset = 'bun').
 Git is never initialized; run git init yourself when ready.
+With Bun, generated dependencies are updated to newest versions within their declared compatible ranges.
 
   --ui nuxt-ui|shadcn|element|none
-  --template latest|starter|dashboard|portfolio|landing|docs|saas|calendar|chat|editor|changelog (Nuxt UI only)
+  --template basic|starter|dashboard|portfolio|landing|docs|saas|calendar|chat|editor|changelog (Nuxt UI only)
   --modules eslint,test,i18n,mdc,content,image,vueuse,pinia,security
   --i18n --mdc ...          Add an individual module
   --locales ru,en           First locale is the default

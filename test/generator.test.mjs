@@ -15,6 +15,7 @@ test('Bun is the default package manager AND Nitro runtime', () => {
   const options = opts()
   const plan = buildProject(options)
   assert.equal(options.pm, 'bun')
+  assert.equal(options.template, 'basic')
   assert.equal(plan.config.nitro.preset, 'bun')
   assert.equal(plan.pkg.scripts.start, 'bun run .output/server/index.mjs')
   assert.match(plan.files.get('deploy/app.service'), /ExecStart=\/usr\/local\/bin\/bun run \.output\/server\/index\.mjs/)

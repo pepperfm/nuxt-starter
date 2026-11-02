@@ -103,6 +103,10 @@ export async function finishProject(options, execute = run) {
   if (options.dryRun) return
   if (options.install) {
     await execute(options.pm, ['install'], options.dir)
+    // Sync the fresh lockfile AND the package.json lower bounds with the newest
+    // versions permitted by each declared range. Avoid automatic breaking major
+    // upgrades or prerelease jumps via `bun update --latest`.
+    if (options.pm === 'bun') await execute('bun', ['update'], options.dir)
     // Match the consumer's first CI run: generated source must already satisfy its ESLint preset.
     if (options.modules.includes('eslint')) await execute(options.pm, ['run', 'lint:fix'], options.dir)
   }

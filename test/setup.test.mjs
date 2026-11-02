@@ -8,7 +8,7 @@ test('normal setup installs and formats selected ESLint without initializing Git
   const calls = []
   await finishProject(options({}), async (...args) => { calls.push(args) })
   assert.deepEqual(calls.map(([cmd, args]) => [cmd, ...args]), [
-    ['bun', 'install'], ['bun', 'run', 'lint:fix']
+    ['bun', 'install'], ['bun', 'update'], ['bun', 'run', 'lint:fix']
   ])
 })
 test('no-install never executes implicit setup commands', async () => {
@@ -20,7 +20,7 @@ test('no-install never executes implicit setup commands', async () => {
 test('setup skips absent formatters; typechecker uses its Node shebang without weakening Vue types', async () => {
   const calls = []
   await finishProject(options({ modules: '' }), async (...args) => { calls.push(args) })
-  assert.deepEqual(calls.map(([cmd, args]) => [cmd, ...args]), [['bun', 'install']])
+  assert.deepEqual(calls.map(([cmd, args]) => [cmd, ...args]), [['bun', 'install'], ['bun', 'update']])
   assert.equal(buildProject(options({ ui: 'shadcn' })).config.typescript.shim, undefined)
   assert.equal(buildProject(options({ ui: 'nuxt-ui' })).config.typescript.shim, undefined)
   assert.equal(buildProject(options({})).pkg.scripts.typecheck, 'nuxt typecheck')

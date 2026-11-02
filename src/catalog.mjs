@@ -27,9 +27,9 @@ export const uis = [
   { value: 'none', label: 'No UI library', hint: 'Vue + plain CSS' }
 ]
 
-/** Official free Nuxt UI templates. 'latest' keeps the current recipe-based starter. */
+/** Nuxt UI visual templates. 'basic' is built-in, not a dependency version policy. */
 export const uiTemplates = [
-  { value: 'latest', label: 'Latest (plain starter)', hint: 'Current PepperFM generator; no external template' },
+  { value: 'basic', label: 'Basic (встроенный)', hint: 'Без внешнего шаблона; актуальные совместимые пакеты устанавливаются отдельно' },
   { value: 'starter', label: 'Starter', hint: 'Official minimal Nuxt UI template' },
   { value: 'dashboard', label: 'Dashboard', hint: 'Sidebar, command palette, charts and admin pages' },
   { value: 'portfolio', label: 'Portfolio', hint: 'Projects, blog and personal pages' },
