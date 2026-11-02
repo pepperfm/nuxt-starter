@@ -111,7 +111,9 @@ function mergeConfig(generatedConfig) {
     '  modules,',
     '  css,',
     "  nitro: defu({ preset: 'bun' }, templateConfig.nitro ?? {})",
-    '})',
+    // Defu's generic merge widens literals such as hub.db.dialect from 'postgresql'
+    // to string; the recipe config itself is already validated by the generator.
+    '} as Parameters<typeof defineNuxtConfig>[0])',
     ''
   ].join('\n')
 }
