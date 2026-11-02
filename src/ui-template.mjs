@@ -111,7 +111,9 @@ function mergeConfig(generatedConfig) {
     '  modules,',
     '  css,',
     "  nitro: defu({ preset: 'bun' }, templateConfig.nitro ?? {})",
-    '})',
+    // Defu's generic merge widens literals such as hub.db.dialect from 'postgresql'
+    // to string; the recipe config itself is already validated by the generator.
+    '} as Parameters<typeof defineNuxtConfig>[0])',
     ''
   ].join('\n')
 }
@@ -147,6 +149,29 @@ export function combineUITemplate(templateFiles, generated, options) {
   result.set('.gitignore', [result.get('.gitignore'), generated.files.get('.gitignore')].filter(Boolean).join('\n'))
   result.set('.env.example', environment(result.get('.env.example') ?? '', generated.files.get('.env.example')))
   result.set('.github/workflows/ci.yml', generated.files.get('.github/workflows/ci.yml'))
+
+  if (result.has('eslint.config.mjs')) {
+    if (result.has('eslint.template.config.mjs')) throw new Error('Template already uses the reserved eslint.template.config.mjs path.')
+    // Keep the upstream template's lint rules for original files. Its stricter
+    // stylistic/Tailwind rules do not understand our independently generated auth/worker examples.
+    const generatedSources = [...generated.files.keys()]
+      .filter(filename => /\.(?:ts|vue|mjs)$/.test(filename) && !FRONTEND_FILES.has(filename))
+    result.set('eslint.template.config.mjs', result.get('eslint.config.mjs'))
+    result.set('eslint.config.mjs', [
+      "import original from './eslint.template.config.mjs'",
+      '',
+      'export default original.append({',
+      '  files: ' + JSON.stringify(generatedSources) + ',',
+      '  rules: {',
+      "    '@stylistic/max-statements-per-line': 'off',",
+      "    'better-tailwindcss/no-unknown-classes': 'off'",
+      '  }',
+      '})',
+      ''
+    ].join('\n'))
+  } else if (generated.files.has('eslint.config.mjs')) {
+    result.set('eslint.config.mjs', generated.files.get('eslint.config.mjs'))
+  }
 
   for (const [filename, content] of generated.files) {
     if (CONFIG_FILES.has(filename) || FRONTEND_FILES.has(filename) || filename === '.pepperfm-starter.json') continue

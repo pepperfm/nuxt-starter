@@ -22,6 +22,7 @@ function fixture() {
     ['.env.example', 'PUBLIC_THEME=dark\n'],
     ['.gitignore', '/node_modules\n'],
     ['README.md', '# Official template\n'],
+    ['eslint.config.mjs', "import withNuxt from './.nuxt/eslint.config.mjs'\nexport default withNuxt()\n"],
     ['public/preview.png', Buffer.from([0, 255, 128, 1])]
   ])
 }
@@ -46,6 +47,8 @@ test('Dashboard preserves UI and adds PostgreSQL, Redis, auth and queues', () =>
   assert.match(String(result.files.get('nuxt.template.config.ts')), /@nuxt\/ui/)
   assert.match(result.files.get('nuxt.config.ts'), /preset: 'bun'/)
   assert.match(result.files.get('nuxt.config.ts'), /@nuxthub\/core/)
+  assert.match(result.files.get('eslint.config.mjs'), /original.append/)
+  assert.match(String(result.files.get('eslint.template.config.mjs')), /withNuxt/)
   assert.ok(result.files.has('server/api/auth/[...all].ts'))
   assert.ok(result.files.has('server/plugins/redis.ts'))
   assert.ok(result.files.has('workers/index.ts'))
