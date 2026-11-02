@@ -44,7 +44,7 @@ test('Dashboard preserves UI and adds PostgreSQL, Redis, auth and queues', () =>
   assert.equal(result.files.get('app/assets/css/main.css'), '@import "tailwindcss";\n')
   assert.deepEqual(result.files.get('public/preview.png'), Buffer.from([0, 255, 128, 1]))
   assert.match(String(result.files.get('nuxt.template.config.ts')), /@nuxt\/ui/)
-  assert.match(result.files.get('nuxt.config.ts'), /preset: "bun"/)
+  assert.match(result.files.get('nuxt.config.ts'), /preset: 'bun'/)
   assert.match(result.files.get('nuxt.config.ts'), /@nuxthub\/core/)
   assert.ok(result.files.has('server/api/auth/[...all].ts'))
   assert.ok(result.files.has('server/plugins/redis.ts'))

@@ -5,6 +5,7 @@ import { mkdir, writeFile, readFile, rm } from 'node:fs/promises'
 import { spawn, spawnSync } from 'node:child_process'
 import { normalize } from '../src/options.mjs'
 import { buildProject, writeProject, finishProject, run } from '../src/generator.mjs'
+import { buildUITemplateProject } from '../src/ui-template.mjs'
 const scenario = process.argv[2] ?? 'nuxt-ui'
 const matrix = {
   none: { ui: 'none', backend: 'none', modules: 'eslint,test' },
@@ -13,13 +14,14 @@ const matrix = {
   element: { ui: 'element', backend: 'none', modules: 'eslint,test,i18n,vueuse,pinia' },
   content: { ui: 'nuxt-ui', backend: 'none', modules: 'eslint,test,content' },
   fullstack: { ui: 'nuxt-ui', backend: 'fullstack', modules: 'eslint,test,i18n,security' },
+  dashboard: { ui: 'nuxt-ui', template: 'dashboard', backend: 'fullstack', modules: 'eslint,test' },
   mysql: { ui: 'none', backend: 'data', database: 'mysql', modules: 'eslint,test' }
 }
 assert.ok(matrix[scenario], 'Unknown smoke scenario')
 const root = resolve('.smoke')
 await mkdir(root, { recursive: true })
 const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-git': true, 'no-docker': true } })
-const plan = buildProject(options)
+const plan = await buildUITemplateProject(options, buildProject(options))
 await writeProject(options, plan)
 // Exercise exactly the consumer setup path, including initial formatting.
 await finishProject({ ...options, install: true, git: false })
@@ -100,9 +102,10 @@ try {
   const page = await fetch(origin)
   assert.equal(page.status, 200)
   const html = await page.text()
-  assert.ok(html.includes('PEPPERFM'), 'SSR did not render the starter')
+  if (options.template === 'latest') assert.ok(html.includes('PEPPERFM'), 'SSR did not render the starter')
+  else assert.ok(html.includes('<html') && html.includes('</html>'), 'SSR did not render the template')
   assert.ok(!html.includes('[object Object]'), 'SSR serialization regression')
-  assert.match(html, /<button[^>]*>[\s\S]*?Counter: 0[\s\S]*?<\/button>/, 'Selected UI must render a real button, not an unresolved custom element')
+  if (options.template === 'latest') assert.match(html, /<button[^>]*>[\s\S]*?Counter: 0[\s\S]*?<\/button>/, 'Selected UI must render a real button, not an unresolved custom element')
   if (options.modules.includes('i18n')) assert.equal((await fetch(origin + '/en')).status, 200)
   if (options.modules.includes('mdc')) assert.match(await (await fetch(origin + '/markdown')).text(), /Markdown demo/)
   if (options.modules.includes('content')) assert.match(await (await fetch(origin + '/docs')).text(), /Your content/)
