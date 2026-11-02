@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { parseCLI, normalize } from '../src/options.mjs'
 import { buildProject, writeProject, finishProject, generatorVersion } from '../src/generator.mjs'
+import { buildUITemplateProject } from '../src/ui-template.mjs'
 
 const help = `PepperFM Nuxt Starter
 
@@ -10,6 +11,7 @@ UI is the first interactive step, followed by modules, backend and local infrast
 Bun is the default package manager and the production runtime (nitro.preset = 'bun').
 
   --ui nuxt-ui|shadcn|element|none
+  --template latest|starter|dashboard|portfolio|landing|docs|saas|calendar|chat|editor|changelog (Nuxt UI only)
   --modules eslint,test,i18n,mdc,content,image,vueuse,pinia,security
   --i18n --mdc ...          Add an individual module
   --locales ru,en           First locale is the default
@@ -34,12 +36,12 @@ try {
   else {
     if (!input.values.yes && !process.stdin.isTTY) throw new Error('Non-interactive terminal: pass --yes and a project directory.')
     const options = input.values.yes ? normalize(input) : await (await import('../src/prompts.mjs')).wizard(input)
-    const plan = buildProject(options)
-    if (options.dryRun) console.log(JSON.stringify({ directory: options.dir, ui: options.ui, modules: options.modules, features: options.features, runtime: 'bun', files: [...plan.files.keys()], notices: plan.notices }, null, 2))
+    const plan = await buildUITemplateProject(options, buildProject(options))
+    if (options.dryRun) console.log(JSON.stringify({ directory: options.dir, ui: options.ui, template: options.template, modules: options.modules, features: options.features, runtime: 'bun', files: [...plan.files.keys()], notices: plan.notices }, null, 2))
     else {
       await writeProject(options, plan)
       await finishProject(options)
-      console.log(`\nCreated ${options.dir}\nUI: ${options.ui} · Nitro: bun · ${plan.files.size} files\n`)
+      console.log(`\nCreated ${options.dir}\nUI: ${options.ui} · Template: ${options.template} · Nitro: bun · ${plan.files.size} files\n`)
       for (const note of plan.notices) console.log(`• ${note}`)
       console.log(`\nNext: cd ${JSON.stringify(options.dir)}\nRead README.md, configure local services, then run ${options.pm} run dev.`)
     }

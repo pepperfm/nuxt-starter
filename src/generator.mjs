@@ -20,7 +20,7 @@ export function buildProject(options) {
   c.file('package.json', JSON.stringify(c.pkg, null, 2))
   c.file('nuxt.config.ts', [...c.imports, '', `export default defineNuxtConfig(${serialize(c.cfg)})`].join('\n'))
   c.file('.env.example', ['# Local development defaults only; do not use these credentials on production.', ...c.env].join('\n'))
-  c.file('.pepperfm-starter.json', JSON.stringify({ schemaVersion: 1, generatorVersion, ui: options.ui,
+  c.file('.pepperfm-starter.json', JSON.stringify({ schemaVersion: 1, generatorVersion, ui: options.ui, template: options.template,
     modules: options.modules, features: options.features, database: options.features.includes('hub') ? options.database : null,
     packageManager: options.pm, runtime: 'bun', locales: options.modules.includes('i18n') ? options.locales : [],
     localDocker: options.docker, ubuntuDeployment: options.deploy }, null, 2))
