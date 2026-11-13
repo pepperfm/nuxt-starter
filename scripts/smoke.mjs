@@ -14,6 +14,7 @@ const matrix = {
   element: { ui: 'element', backend: 'none', modules: 'eslint,test,i18n,vueuse,pinia' },
   content: { ui: 'nuxt-ui', backend: 'none', modules: 'eslint,test,content' },
   fullstack: { ui: 'nuxt-ui', backend: 'fullstack', modules: 'eslint,test,i18n,security' },
+  starter: { ui: 'nuxt-ui', template: 'starter', backend: 'none', modules: 'eslint,test' },
   dashboard: { ui: 'nuxt-ui', template: 'dashboard', backend: 'fullstack', modules: 'eslint,test' },
   mysql: { ui: 'none', backend: 'data', database: 'mysql', modules: 'eslint,test' }
 }

@@ -81,16 +81,35 @@ test('Dry run never downloads an external UI template', async () => {
   assert.equal(result, plan)
 })
 
-test('the official Nuxt template is fetched quietly without Git init', async () => {
-  const opts = options({ template: 'dashboard', backend: 'none' })
-  let command
-  await assert.rejects(downloadUITemplate(opts, async (...args) => {
-    command = args
-    throw new Error('offline fixture')
-  }), /offline fixture/)
+test('official Nuxt UI templates use their correct create-nuxt keys without Git init', async () => {
+  const expectedKeys = {
+    starter: 'ui',
+    dashboard: 'ui/dashboard',
+    portfolio: 'ui/portfolio',
+    landing: 'ui/landing',
+    docs: 'ui/docs',
+    saas: 'ui/saas',
+    calendar: 'ui/calendar',
+    chat: 'ui/chat',
+    editor: 'ui/editor',
+    changelog: 'ui/changelog'
+  }
+  assert.deepEqual(
+    uiTemplates.filter(item => item.value !== 'basic').map(item => item.value).sort(),
+    Object.keys(expectedKeys).sort(),
+    'Every selectable external template must have a documented Nuxt registry key'
+  )
+  for (const [template, key] of Object.entries(expectedKeys)) {
+    let command
+    await assert.rejects(downloadUITemplate(options({ template, backend: 'none' }), async (...args) => {
+      command = args
+      throw new Error('offline fixture')
+    }), /offline fixture/)
 
-  assert.equal(command[0], 'bunx')
-  assert.ok(command[1].includes('--no-gitInit'))
-  assert.deepEqual(command[3].quiet, true)
-  assert.ok(command[3].redactPaths.some(path => path.includes('pepperfm-nuxt-ui-')))
+    assert.equal(command[0], 'bunx')
+    assert.equal(command[1][command[1].indexOf('--template') + 1], key)
+    assert.ok(command[1].includes('--no-gitInit'))
+    assert.deepEqual(command[3].quiet, true)
+    assert.ok(command[3].redactPaths.some(path => path.includes('pepperfm-nuxt-ui-')))
+  }
 })

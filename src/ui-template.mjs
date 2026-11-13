@@ -41,7 +41,7 @@ export async function downloadUITemplate(options, execute = run) {
     const destination = join(scratch, 'template')
     await execute('bunx', [
       '--bun', 'create-nuxt@latest', destination,
-      '--template', 'ui/' + options.template,
+      '--template', options.template === 'starter' ? 'ui' : 'ui/' + options.template,
       '--no-install', '--no-gitInit', '--packageManager', options.pm
     ], scratch, { quiet: true, redactPaths: [scratch, destination] })
     return await readScaffold(destination)
