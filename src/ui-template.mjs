@@ -41,9 +41,9 @@ export async function downloadUITemplate(options, execute = run) {
     const destination = join(scratch, 'template')
     await execute('bunx', [
       '--bun', 'create-nuxt@latest', destination,
-      '--template', 'ui/' + options.template,
+      '--template', options.template === 'starter' ? 'ui' : 'ui/' + options.template,
       '--no-install', '--no-gitInit', '--packageManager', options.pm
-    ], scratch)
+    ], scratch, { quiet: true, redactPaths: [scratch, destination] })
     return await readScaffold(destination)
   } finally {
     await rm(scratch, { recursive: true, force: true })
@@ -126,7 +126,7 @@ function scopedStyles(css) {
 
 /** Preserve original UI and fail on actual backend/file collisions. */
 export function combineUITemplate(templateFiles, generated, options) {
-  if (options.template === 'latest') throw new Error('The latest starter does not use an external template.')
+  if (options.template === 'basic') throw new Error('The built-in starter does not use an external template.')
   const result = new Map(templateFiles)
   for (const filename of ['package.json', 'nuxt.config.ts', 'app/app.vue']) {
     if (!result.has(filename)) throw new Error('Nuxt UI template is missing ' + filename)
@@ -193,6 +193,6 @@ export function combineUITemplate(templateFiles, generated, options) {
 }
 
 export async function buildUITemplateProject(options, generated, execute = run) {
-  if (options.dryRun || options.template === 'latest') return generated
+  if (options.dryRun || options.template === 'basic') return generated
   return combineUITemplate(await downloadUITemplate(options, execute), generated, options)
 }

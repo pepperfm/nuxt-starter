@@ -27,7 +27,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        scenario: [none, nuxt-ui, shadcn, element, content, fullstack, mysql, dashboard]
+        scenario: [none, nuxt-ui, shadcn, element, content, fullstack, mysql, starter, dashboard]
     services:
       postgres:
         image: postgres:17-alpine

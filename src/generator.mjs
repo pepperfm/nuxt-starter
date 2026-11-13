@@ -15,7 +15,7 @@ export const generatorVersion = '0.1.0'
 export function buildProject(options) {
   const c = context(options)
   for (const recipe of [base, ui, extras, data, auth, queue, infra]) recipe(c)
-  c.pkg.engines = { bun: '>=1.3.0', node: c.has('content') ? '>=22.13.0' : '>=22.12.0' }
+  c.pkg.engines = { bun: '>=1.3.0', node: (c.has('content') || c.has('eslint')) ? '>=22.13.0' : '>=22.12.0' }
   for (const key of ['dependencies', 'devDependencies']) c.pkg[key] = Object.fromEntries(Object.entries(c.pkg[key]).sort(([a], [b]) => a.localeCompare(b)))
   c.file('package.json', JSON.stringify(c.pkg, null, 2))
   c.file('nuxt.config.ts', [...c.imports, '', `export default defineNuxtConfig(${serialize(c.cfg)})`].join('\n'))
@@ -76,19 +76,38 @@ export async function writeProject(options, plan = buildProject(options)) {
   return plan
 }
 
-export async function run(command, args, cwd) {
+// Quiet mode is reserved for internal scaffolding: do not show the disposable
+// Nuxt template path or its "next steps". Preserve child diagnostics on failure.
+export async function run(command, args, cwd, { quiet = false, redactPaths = [] } = {}) {
   await new Promise((accept, reject) => {
-    const child = spawn(command, args, { cwd, stdio: 'inherit', shell: false })
+    const child = spawn(command, args, {
+      cwd, stdio: quiet ? ['ignore', 'pipe', 'pipe'] : 'inherit', shell: false
+    })
+    let output = ''
+    if (quiet) {
+      for (const stream of [child.stdout, child.stderr]) {
+        stream.on('data', chunk => { output = (output + chunk.toString()).slice(-32_768) })
+      }
+    }
     child.once('error', error => reject(new Error(`Cannot run ${command}: ${error.message}`, { cause: error })))
-    child.once('exit', (code, signal) => code === 0 ? accept() : reject(new Error(`${command} failed (${signal ?? code}). Generated files were preserved.`)))
+    // 'close' waits for stdout/stderr to flush, unlike 'exit'.
+    child.once('close', (code, signal) => {
+      if (code === 0) return accept()
+      const details = redactPaths.reduce((text, path) =>
+        path ? text.split(path).join('<temporary template>') : text, output.trim())
+      reject(new Error(`${command} failed (${signal ?? code}). Generated files were preserved.${details ? '\n' + details : ''}`))
+    })
   })
 }
 export async function finishProject(options, execute = run) {
   if (options.dryRun) return
   if (options.install) {
     await execute(options.pm, ['install'], options.dir)
+    // Sync the fresh lockfile AND the package.json lower bounds with the newest
+    // versions permitted by each declared range. Avoid automatic breaking major
+    // upgrades or prerelease jumps via `bun update --latest`.
+    if (options.pm === 'bun') await execute('bun', ['update'], options.dir)
     // Match the consumer's first CI run: generated source must already satisfy its ESLint preset.
     if (options.modules.includes('eslint')) await execute(options.pm, ['run', 'lint:fix'], options.dir)
   }
-  if (options.git) await execute('git', ['init', '-b', 'master'], options.dir)
 }

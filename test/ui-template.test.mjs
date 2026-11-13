@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { normalize } from '../src/options.mjs'
 import { uiTemplates } from '../src/catalog.mjs'
 import { buildProject } from '../src/generator.mjs'
-import { combineUITemplate, buildUITemplateProject } from '../src/ui-template.mjs'
+import { combineUITemplate, buildUITemplateProject, downloadUITemplate } from '../src/ui-template.mjs'
 
 const options = values => normalize({ target: '/tmp/nuxt-template-test', values })
 
@@ -27,8 +27,9 @@ function fixture() {
   ])
 }
 
-test('UI template selection leaves the old latest preset intact', () => {
-  assert.equal(options({}).template, 'latest')
+test('Basic template naming distinguishes visuals from dependency freshness', () => {
+  assert.equal(options({}).template, 'basic')
+  assert.equal(options({ template: 'latest' }).template, 'basic')
   assert.equal(options({ ui: 'nuxt-ui', template: 'dashboard' }).template, 'dashboard')
   assert.ok(uiTemplates.some(item => item.value === 'portfolio'))
   assert.throws(() => options({ ui: 'shadcn', template: 'dashboard' }), /only with --ui nuxt-ui/)
@@ -78,4 +79,37 @@ test('Dry run never downloads an external UI template', async () => {
   const plan = buildProject(opts)
   const result = await buildUITemplateProject(opts, plan, () => { throw new Error('Unexpected network') })
   assert.equal(result, plan)
+})
+
+test('official Nuxt UI templates use their correct create-nuxt keys without Git init', async () => {
+  const expectedKeys = {
+    starter: 'ui',
+    dashboard: 'ui/dashboard',
+    portfolio: 'ui/portfolio',
+    landing: 'ui/landing',
+    docs: 'ui/docs',
+    saas: 'ui/saas',
+    calendar: 'ui/calendar',
+    chat: 'ui/chat',
+    editor: 'ui/editor',
+    changelog: 'ui/changelog'
+  }
+  assert.deepEqual(
+    uiTemplates.filter(item => item.value !== 'basic').map(item => item.value).sort(),
+    Object.keys(expectedKeys).sort(),
+    'Every selectable external template must have a documented Nuxt registry key'
+  )
+  for (const [template, key] of Object.entries(expectedKeys)) {
+    let command
+    await assert.rejects(downloadUITemplate(options({ template, backend: 'none' }), async (...args) => {
+      command = args
+      throw new Error('offline fixture')
+    }), /offline fixture/)
+
+    assert.equal(command[0], 'bunx')
+    assert.equal(command[1][command[1].indexOf('--template') + 1], key)
+    assert.ok(command[1].includes('--no-gitInit'))
+    assert.deepEqual(command[3].quiet, true)
+    assert.ok(command[3].redactPaths.some(path => path.includes('pepperfm-nuxt-ui-')))
+  }
 })

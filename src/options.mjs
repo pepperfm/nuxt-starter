@@ -24,9 +24,9 @@ export function normalize(input, cwd = process.cwd()) {
   const aliases = { nuxtui: 'nuxt-ui', 'shadcn-vue': 'shadcn', 'element-plus': 'element' }
   const ui = aliases[values.ui] ?? values.ui ?? 'nuxt-ui'
   if (!uis.some(item => item.value === ui)) throw new Error(`Unknown UI: ${ui}`)
-  const template = values.template ?? 'latest'
+  const template = values.template === 'latest' ? 'basic' : (values.template ?? 'basic')
   if (!uiTemplates.some(item => item.value === template)) throw new Error(`Unknown Nuxt UI template: ${template}`)
-  if (ui !== 'nuxt-ui' && template !== 'latest') throw new Error('--template is available only with --ui nuxt-ui.')
+  if (ui !== 'nuxt-ui' && template !== 'basic') throw new Error('--template is available only with --ui nuxt-ui.')
   const preset = values.backend ?? 'fullstack'
   if (!Object.hasOwn(backends, preset)) throw new Error(`Unknown backend preset: ${preset}`)
   let selected = values.modules === undefined ? ['eslint', 'test'] : csv(values.modules)
@@ -65,6 +65,6 @@ export function normalize(input, cwd = process.cwd()) {
     name, dir, ui, template, modules: moduleNames.filter(n => selected.includes(n)),
     features: featureNames.filter(n => features.has(n)), database, pm, locales,
     docker: !values['no-docker'], deploy: !values['no-deploy'],
-    install: !values['no-install'], git: !values['no-git'], dryRun: !!values['dry-run'], notices
+    install: !values['no-install'], dryRun: !!values['dry-run'], notices
   }
 }

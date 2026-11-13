@@ -2,13 +2,13 @@
  * Each generated application must commit its own package-manager lockfile.
  */
 export const versions = Object.freeze({
-  nuxt: '^4.6.2', vue: '^3.5.0', 'vue-router': '^4.5.0',
+  nuxt: '^4.6.3', vue: '^3.5.0', 'vue-router': '^4.5.0',
   typescript: '^5.9.0', 'vue-tsc': '^3.0.0', '@types/node': '^24.12.0',
-  '@nuxt/ui': '^4.0.0', tailwindcss: '^4.1.0', '@tailwindcss/vite': '^4.1.0',
+  '@nuxt/ui': '^4.12.0', tailwindcss: '^4.1.0', '@tailwindcss/vite': '^4.1.0',
   'shadcn-nuxt': '^2.0.0', 'reka-ui': '^2.0.0',
   'class-variance-authority': '^0.7.1', clsx: '^2.1.1', 'tailwind-merge': '^3.0.0',
   '@element-plus/nuxt': '^1.0.0', 'element-plus': '^2.9.0', dayjs: '^1.11.0',
-  '@nuxt/eslint': '^1.0.0', eslint: '^9.0.0',
+  '@nuxt/eslint': '^1.17.0', eslint: '^10.13.0',
   '@nuxtjs/i18n': '^10.0.0', '@nuxtjs/mdc': '^0.18.0',
   '@nuxt/content': '^3.0.0', '@nuxt/image': '^2.0.0',
   '@vueuse/nuxt': '^13.0.0', '@vueuse/core': '^13.0.0',
@@ -27,9 +27,9 @@ export const uis = [
   { value: 'none', label: 'No UI library', hint: 'Vue + plain CSS' }
 ]
 
-/** Official free Nuxt UI templates. 'latest' keeps the current recipe-based starter. */
+/** Nuxt UI visual templates. 'basic' is built-in, not a dependency version policy. */
 export const uiTemplates = [
-  { value: 'latest', label: 'Latest (plain starter)', hint: 'Current PepperFM generator; no external template' },
+  { value: 'basic', label: 'Basic (встроенный)', hint: 'Без внешнего шаблона; актуальные совместимые пакеты устанавливаются отдельно' },
   { value: 'starter', label: 'Starter', hint: 'Official minimal Nuxt UI template' },
   { value: 'dashboard', label: 'Dashboard', hint: 'Sidebar, command palette, charts and admin pages' },
   { value: 'portfolio', label: 'Portfolio', hint: 'Projects, blog and personal pages' },

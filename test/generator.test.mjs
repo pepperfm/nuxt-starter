@@ -15,10 +15,17 @@ test('Bun is the default package manager AND Nitro runtime', () => {
   const options = opts()
   const plan = buildProject(options)
   assert.equal(options.pm, 'bun')
+  assert.equal(options.template, 'basic')
   assert.equal(plan.config.nitro.preset, 'bun')
   assert.equal(plan.pkg.scripts.start, 'bun run .output/server/index.mjs')
   assert.match(plan.files.get('deploy/app.service'), /ExecStart=\/usr\/local\/bin\/bun run \.output\/server\/index\.mjs/)
   assert.match(plan.files.get('deploy/worker.service'), /bun run workers\/index\.ts/)
+})
+test('current ESLint uses a supported major and compatible Node minimum', () => {
+  const plan = buildProject(opts({ modules: 'eslint' }))
+  assert.equal(plan.pkg.devDependencies.eslint, '^10.13.0')
+  assert.equal(plan.pkg.dependencies['@nuxt/eslint'], '^1.17.0')
+  assert.equal(plan.pkg.engines.node, '>=22.13.0')
 })
 test('choosing another installer never silently changes the server runtime', () => {
   assert.equal(buildProject(opts({ pm: 'npm' })).config.nitro.preset, 'bun')
@@ -106,7 +113,7 @@ test('generated .gitignore excludes local IDE state, caches and secrets without 
 })
 test('dependency versions include patched releases and explicit Vite for Vitest 5', () => {
   const p = buildProject(opts({ ui: 'nuxt-ui', backend: 'fullstack', modules: 'eslint,test' }))
-  assert.equal(p.pkg.dependencies.nuxt, '^4.6.2')
+  assert.equal(p.pkg.dependencies.nuxt, '^4.6.3')
   assert.equal(p.pkg.dependencies['drizzle-orm'], '1.0.0-beta.21')
   assert.equal(p.pkg.dependencies['drizzle-kit'], '1.0.0-beta.21')
   assert.equal(p.pkg.dependencies.mysql2, undefined)

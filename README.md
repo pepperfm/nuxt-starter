@@ -50,13 +50,13 @@ bun run dev ../preview --yes --dry-run
 
 ## Шаги мастера
 
-1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий. При Nuxt UI — выбор шаблона: текущий `latest` или официальный Starter, Dashboard, Portfolio, Landing, Docs, SaaS, Calendar, Chat, Editor, Changelog. Дизайн сохраняется, backend и инфраструктура добавляются отдельно.
+1. **UI:** Nuxt UI, shadcn-vue, Element Plus или без UI. Выбор взаимоисключающий. При Nuxt UI — выбор шаблона: встроенный **Basic** (ранее `latest`) или официальный Starter, Dashboard, Portfolio, Landing, Docs, SaaS, Calendar, Chat, Editor, Changelog. Дизайн сохраняется, backend и инфраструктура добавляются отдельно. При Bun после `bun install` генератор автоматически выполняет `bun update`: обновляет прямые и транзитивные пакеты в рамках совместимых semver-диапазонов и актуализирует `package.json` и `bun.lock`. Не выполняется `--latest` для несовместимых мажорных версий и явно закреплённых beta-зависимостей. При `--no-install` обновление не выполняется.
 
    Официальный шаблон скачивается во временный каталог и объединяется с рецептами до записи целевого проекта. При коллизии путей генерация прекращается. SaaS нельзя совмещать с текущим auth-рецептом (конфликт `/login`); Chat уже содержит свой backend, для него только `--backend none`. Загрузка требует сети; `--dry-run` сеть не использует.
 2. **Модули:** ESLint, Vitest, i18n, MDC, Content, Image, VueUse, Pinia, Nuxt Security.
 3. **Backend:** NuxtHub + Drizzle, Redis cache/KV, Better Auth, BullMQ + расписания. Необходимые зависимости добавляются автоматически.
 4. **Инфраструктура:** Bun по умолчанию; можно выбрать другой установщик пакетов, но Nitro runtime остаётся Bun. Локальный Compose и Ubuntu-примеры независимы.
-5. **Каталог и подтверждение:** генерация, отдельный `.env` с уникальным dev-secret, установка зависимостей, `git init` без автоматического коммита.
+5. **Каталог и подтверждение:** генерация, отдельный `.env` с уникальным dev-secret, установка зависимостей. Git не инициализируется — пользователь сам решает, когда выполнять `git init`.
 
 Приоритет — модулям команды Nuxt/Nuxt Community. shadcn-vue и Element Plus поддерживаются своими командами; Better Auth и BullMQ — самостоятельные библиотеки, а не «официальный Laravel для Nuxt».
 
@@ -88,7 +88,7 @@ Email verification/reset с доставкой писем, OAuth-провайд�
 
 ## Параметры
 
-См. `bun run dev --help`. Полезные: `--no-install`, `--no-git`, `--no-docker`, `--no-deploy`, `--locales ru,en`, `--modules ''`, `--features ''`.
+См. `bun run dev --help`. Полезные: `--no-install`, `--no-docker`, `--no-deploy`, `--locales ru,en`, `--modules ''`, `--features ''`.
 
 Генератор никогда не перезаписывает существующий каталог, не запускает миграции и не поднимает Docker автоматически. При ошибке установки файлы сохраняются. `.env` имеет права 0600 и исключён из Git; `.env.example` не содержит сгенерированный secret.
 

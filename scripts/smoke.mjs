@@ -14,17 +14,18 @@ const matrix = {
   element: { ui: 'element', backend: 'none', modules: 'eslint,test,i18n,vueuse,pinia' },
   content: { ui: 'nuxt-ui', backend: 'none', modules: 'eslint,test,content' },
   fullstack: { ui: 'nuxt-ui', backend: 'fullstack', modules: 'eslint,test,i18n,security' },
+  starter: { ui: 'nuxt-ui', template: 'starter', backend: 'none', modules: 'eslint,test' },
   dashboard: { ui: 'nuxt-ui', template: 'dashboard', backend: 'fullstack', modules: 'eslint,test' },
   mysql: { ui: 'none', backend: 'data', database: 'mysql', modules: 'eslint,test' }
 }
 assert.ok(matrix[scenario], 'Unknown smoke scenario')
 const root = resolve('.smoke')
 await mkdir(root, { recursive: true })
-const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-git': true, 'no-docker': true } })
+const options = normalize({ target: resolve(root, scenario), values: { ...matrix[scenario], 'no-install': true, 'no-docker': true } })
 const plan = await buildUITemplateProject(options, buildProject(options))
 await writeProject(options, plan)
 // Exercise exactly the consumer setup path, including initial formatting.
-await finishProject({ ...options, install: true, git: false })
+await finishProject({ ...options, install: true })
 // Exercise actual ESLint formatting behavior against a deliberately unformatted SFC.
 if (scenario === 'shadcn') {
   const path = resolve(options.dir, 'app/components/FormattingProbe.vue')
@@ -102,10 +103,10 @@ try {
   const page = await fetch(origin)
   assert.equal(page.status, 200)
   const html = await page.text()
-  if (options.template === 'latest') assert.ok(html.includes('PEPPERFM'), 'SSR did not render the starter')
+  if (options.template === 'basic') assert.ok(html.includes('PEPPERFM'), 'SSR did not render the starter')
   else assert.ok(html.includes('<html') && html.includes('</html>'), 'SSR did not render the template')
   assert.ok(!html.includes('[object Object]'), 'SSR serialization regression')
-  if (options.template === 'latest') assert.match(html, /<button[^>]*>[\s\S]*?Counter: 0[\s\S]*?<\/button>/, 'Selected UI must render a real button, not an unresolved custom element')
+  if (options.template === 'basic') assert.match(html, /<button[^>]*>[\s\S]*?Counter: 0[\s\S]*?<\/button>/, 'Selected UI must render a real button, not an unresolved custom element')
   if (options.modules.includes('i18n')) assert.equal((await fetch(origin + '/en')).status, 200)
   if (options.modules.includes('mdc')) assert.match(await (await fetch(origin + '/markdown')).text(), /Markdown demo/)
   if (options.modules.includes('content')) assert.match(await (await fetch(origin + '/docs')).text(), /Your content/)
