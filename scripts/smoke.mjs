@@ -57,7 +57,14 @@ await run('bun', ['run', 'typecheck'], options.dir)
   const path = resolve(options.dir, scenario === 'shadcn' ? 'app/components/ui/button/Button.vue' : 'app/pages/index.vue')
   const original = await readFile(path, 'utf8')
   try {
-    await writeFile(path, original.replace('<script setup lang="ts">', '<script setup lang="ts">\nconst intentionalTypeProbe: number = \'must be rejected\''))
+    const script = '<script setup lang="ts">'
+    const error = "\nconst intentionalTypeProbe: number = 'must be rejected'\n"
+    // Upstream templates may have a template-only page, with no script to replace.
+    const modified = original.includes(script)
+      ? original.replace(script, script + error)
+      : script + error + '</script>\n' + original
+    assert.notEqual(modified, original, 'SFC typecheck probe must modify the page')
+    await writeFile(path, modified)
     const probe = spawnSync('bun', ['run', 'typecheck'], { cwd: options.dir, encoding: 'utf8', timeout: 60000 })
     assert.ok(!probe.error, 'SFC typecheck probe failed to execute')
     assert.notEqual(probe.status, 0, 'Vue SFC type errors must not be silently skipped by the checker')
