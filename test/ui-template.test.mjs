@@ -82,7 +82,24 @@ test('Dry run never downloads an external UI template', async () => {
 })
 
 test('official Nuxt UI templates use their correct create-nuxt keys without Git init', async () => {
-  for (const [template, key] of [['starter', 'ui'], ['dashboard', 'ui/dashboard']]) {
+  const expectedKeys = {
+    starter: 'ui',
+    dashboard: 'ui/dashboard',
+    portfolio: 'ui/portfolio',
+    landing: 'ui/landing',
+    docs: 'ui/docs',
+    saas: 'ui/saas',
+    calendar: 'ui/calendar',
+    chat: 'ui/chat',
+    editor: 'ui/editor',
+    changelog: 'ui/changelog'
+  }
+  assert.deepEqual(
+    uiTemplates.filter(item => item.value !== 'basic').map(item => item.value).sort(),
+    Object.keys(expectedKeys).sort(),
+    'Every selectable external template must have a documented Nuxt registry key'
+  )
+  for (const [template, key] of Object.entries(expectedKeys)) {
     let command
     await assert.rejects(downloadUITemplate(options({ template, backend: 'none' }), async (...args) => {
       command = args
