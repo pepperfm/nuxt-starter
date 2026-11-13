@@ -21,6 +21,12 @@ test('Bun is the default package manager AND Nitro runtime', () => {
   assert.match(plan.files.get('deploy/app.service'), /ExecStart=\/usr\/local\/bin\/bun run \.output\/server\/index\.mjs/)
   assert.match(plan.files.get('deploy/worker.service'), /bun run workers\/index\.ts/)
 })
+test('current ESLint uses a supported major and compatible Node minimum', () => {
+  const plan = buildProject(opts({ modules: 'eslint' }))
+  assert.equal(plan.pkg.devDependencies.eslint, '^10.13.0')
+  assert.equal(plan.pkg.devDependencies['@nuxt/eslint'], '^1.17.0')
+  assert.equal(plan.pkg.engines.node, '>=22.13.0')
+})
 test('choosing another installer never silently changes the server runtime', () => {
   assert.equal(buildProject(opts({ pm: 'npm' })).config.nitro.preset, 'bun')
 })
