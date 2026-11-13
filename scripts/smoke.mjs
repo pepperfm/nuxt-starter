@@ -54,15 +54,20 @@ else { output = 'Unavailable' }
 }
 await run('bun', ['run', 'typecheck'], options.dir)
 {
-  const path = resolve(options.dir, scenario === 'shadcn' ? 'app/components/ui/button/Button.vue' : 'app/pages/index.vue')
-  const original = await readFile(path, 'utf8')
+  // Upstream templates may have a template-only index.vue, so never assume
+  // that an existing page has <script setup lang="ts"> for the negative probe.
+  const path = resolve(options.dir, 'app/components/TypecheckProbe.vue')
+  await writeFile(path, `<script setup lang="ts">
+const intentionalTypeProbe: number = 'must be rejected'
+</script>
+<template><div>{{ intentionalTypeProbe }}</div></template>
+`)
   try {
-    await writeFile(path, original.replace('<script setup lang="ts">', '<script setup lang="ts">\nconst intentionalTypeProbe: number = \'must be rejected\''))
     const probe = spawnSync('bun', ['run', 'typecheck'], { cwd: options.dir, encoding: 'utf8', timeout: 60000 })
     assert.ok(!probe.error, 'SFC typecheck probe failed to execute')
     assert.notEqual(probe.status, 0, 'Vue SFC type errors must not be silently skipped by the checker')
     assert.match(probe.stdout + probe.stderr, /TS2322/, 'Expected the deliberate string-to-number type error in the Vue SFC')
-  } finally { await writeFile(path, original) }
+  } finally { await rm(path, { force: true }) }
 }
 if (options.features.includes('queue')) await run('bun', ['run', 'typecheck:worker'], options.dir)
 await run('bun', ['run', 'test'], options.dir)
