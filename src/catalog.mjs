@@ -8,7 +8,7 @@ export const versions = Object.freeze({
   'shadcn-nuxt': '^2.0.0', 'reka-ui': '^2.0.0',
   'class-variance-authority': '^0.7.1', clsx: '^2.1.1', 'tailwind-merge': '^3.0.0',
   '@element-plus/nuxt': '^1.0.0', 'element-plus': '^2.9.0', dayjs: '^1.11.0',
-  '@nuxt/eslint': '^1.0.0', eslint: '^9.0.0',
+  '@nuxt/eslint': '^1.17.0', eslint: '^10.13.0',
   '@nuxtjs/i18n': '^10.0.0', '@nuxtjs/mdc': '^0.18.0',
   '@nuxt/content': '^3.0.0', '@nuxt/image': '^2.0.0',
   '@vueuse/nuxt': '^13.0.0', '@vueuse/core': '^13.0.0',
